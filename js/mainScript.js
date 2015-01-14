@@ -2,12 +2,11 @@
 var movespeed = 100, lookSpeed = 0.075;
 var scene, camera, controls, renderer, playerHeight;
 
-
 //the rendering function
 function render(){
     requestAnimationFrame(render); 
     renderer.render(scene, camera);
-} 
+}
 render();
 //_________________________________________________
 
@@ -18,7 +17,7 @@ function init(){
     //create perspective camera(FOV field of view [degrees], 
     //aspect ratio[width/height of element],near, far [clipping plane. 
     //no rendering nearer than near or beyond far. improves performance])
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
     camera.position.y = playerHeight * 0.7; //set camera height position
     scene.add(camera);
 
@@ -30,7 +29,7 @@ function init(){
 	controls.moveSpeed = moveSpeed; //player move around speed
 	controls.noFly = true; //no using R/F keys for moving up/down
     
-    sceneSetup(); //-----------
+    sceneSetup(); //----------- function to be created
     
     //create renderer. set render size to browser window size
     renderer = new THREE.WebGLRenderer();
@@ -46,4 +45,13 @@ function init(){
     //,true/false:capturing/bubbling = 'mousemove' will trigger onDocumentMouseMove 
     // on innermost element and bubble up to parents)
     document.addEventListener('mousemove', onDocumentMouseMove, false);
+}
+
+function sceneSetup(){
+    var floor = 0; //??
+    scene.add(floor);
+    
+    var wallCube = 0; //??
+    
+    //light ??
 }
