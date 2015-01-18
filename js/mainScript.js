@@ -3,7 +3,7 @@
 var moveSpeed = 200, 
     lookSpeed = 0.1, 
     unitSize = 200, 
-    wallheight = 100, 
+    wallHeight = 100,
     mouse = {x: 0, y: 0};
 var width = window.innerWidth, height = window.innerHeight, aspect = width/height;
 var scene, units, camera, controls, renderer, clock, projector;
@@ -83,25 +83,33 @@ function sceneSetup(){
     var cube = new THREE.BoxGeometry(unitSize, wallHeight, unitSize); 
     var wallMaterial = new THREE.MeshLambertMaterial({color: 0x00ff00});
     
-    //loopa igenom map och placera wallcubes ------------------
-    // 
-    for(i = 0; i < mapWidth; i++){
-        for(j = 0; l = map[i].length; j < l){
-            if(){
+    //loopa igenom map och placera wallcubes
+    for(i = 0; i < mapHeight; i++){
+        for(j = 0; l = map[i].length; j < l; j++){
+            if(map[i][j] > 0){
                 var wallCube = new THREE.Mesh(cube, wallMaterial);
+                wallCube.position.x = i * unitSize;
+                wallCube.position.y = wallHeight/2;
+                wallCube.position.z = j * unitSize;
                 scene.add(wallCube);
             }
         }
     }
     
     //light
+    var ambLight = new THREE.AmbientLight(0x404040);
+    /*
     //DirectionalLight(hex, intensity)
     var direcLight = new THREE.DirectionalLight(0x00ff00, 0.5);
     //set position of light source
 	direcLight.position.set(1, 1, 1);
 	scene.add(direcLight);
+    */
 }
 
+function animate(){
+    
+}
 //the rendering function
 function render(){
 
