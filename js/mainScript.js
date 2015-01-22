@@ -6,7 +6,7 @@ var moveSpeed = 200,
     wallHeight = 100,
     mouse = {x: 0, y: 0};
 var width = window.innerWidth, height = window.innerHeight, aspect = width/height;
-var scene, units, camera, controls, renderer, clock, projector;
+var scene, units, camera, controls, renderer, clock, projector, animationRun = true;
 
 var map =[//0  1  2  3  4  5  6  7  8  9
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
@@ -107,17 +107,26 @@ function sceneSetup(){
     */
 }
 
+
 function animate(){
-    
+    if(animationRun){
+        //when browser is ready to render new frame, call (animate)
+        requestAnimationFrame(animate);
+    }
+    render();
 }
+
 //the rendering function
 function render(){
-
+    //smarter updating with time calculating??
+    controls.update();
+    
+    renderer.render(scene, camera);
+    
     //collision check, player location and stuff??
     
     //argument callback
-    requestAnimationFrame(render); //-------
-    renderer.render(scene, camera);
+ //-------
     
 }
 //render();
