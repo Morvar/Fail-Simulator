@@ -30,11 +30,13 @@ function init(){
 	projector = new THREE.Projector(); //helper class for projecting. makes 2D into 3D rays
     //scene setup - creating the world. the scene holds the other objects
     scene = new THREE.Scene();
+    //add fog to the scene
+    scene.fog = new THREE.FogExp2(0xCCFFFF, 0.001); // (hex, density)
     
     //create perspective camera(FOV field of view [degrees], 
     //aspect ratio[width/height of element],near, far [clipping plane. 
     //no rendering nearer than near or beyond far. improves performance])
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
     camera.position.y = unitSize * 0.5; //set camera height position
     scene.add(camera);
 
@@ -65,6 +67,7 @@ function init(){
     document.addEventListener('mousemove', onDocumentMouseMove, false);
     
     //shooting???
+    addBullet(); //-------------------------------
 }
 
 function sceneSetup(){
@@ -107,9 +110,10 @@ function sceneSetup(){
     */
 }
 
-
+//call render() repeatedly every time browser can render new frame
 function animate(){
     if(animationRun){
+        //works asynchronically
         //when browser is ready to render new frame, call (animate)
         requestAnimationFrame(animate);
     }
@@ -118,15 +122,17 @@ function animate(){
 
 //the rendering function
 function render(){
-    //smarter updating with time calculating??
-    controls.update();
+    var delta = clock.getDelta(); //returns time since last time called
+    controls.update(delta); //moves camera --------??
     
-    renderer.render(scene, camera);
+    
+    renderer.render(scene, camera); //repaints everything
     
     //collision check, player location and stuff??
     
-    //argument callback
- //-------
-    
 }
-//render();
+
+
+
+
+
