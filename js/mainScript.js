@@ -24,6 +24,26 @@ var map =[//0  1  2  3  4  5  6  7  8  9
 
 //_________________________________________________
 
+//initialize, run when document is ready
+//$(selector).action()
+$(document).ready(function(){
+    //add a start game click text
+	$('body').append('<div id="startGame">Start Game</div>');
+    //on element with id startGame add css properties width,height
+    //attach event handler event type 'click'
+    //when 'click', execute the function(e)
+	$('#startGame').css({width: width, height: height}).one('click', function(e){
+        //prevent the default action that takes browser to new url
+        e.preventDefault(); //------------ CSS in separate file?????----------
+        init();
+        //radar??
+        animate();
+    }
+    );
+});
+
+//_________________________________________________
+
 function init(){
     
     clock = new THREE.Clock(); //calculate time between rendering frames
@@ -41,7 +61,7 @@ function init(){
     scene.add(camera);
 
     //FirstPersonControls: move camera with mouse, player using WASD/arrow keys
-    // takes the camera object as argument
+    //takes the camera object as argument
 	controls = new THREE.FirstPersonControls(camera);
     controls.lookSpeed = lookSpeed; //player look around speed (mouse)
     controls.lookVertical = false; //player can't look up/down (prevents flying)
@@ -66,10 +86,21 @@ function init(){
     // on innermost element and bubble up to parents)
     document.addEventListener('mousemove', onDocumentMouseMove, false);
     
-    //shooting???
-    addBullet(); //-------------------------------
+    //shooting
+    $(document).click(function(e) {
+        e.preventDefault;
+        //shoot with left click (id 1) or left shift (id 16)
+        //.which property indicates which key is pressed
+        if (e.which === 1 || e.which === 16) {
+            addBullet(); //-----------------------write this function
+        }
+    });
+    
+    //heads-up display??-----
+    
 }
 
+    
 function sceneSetup(){
     
     var units = mapWidth; 
@@ -77,18 +108,19 @@ function sceneSetup(){
     //create the floor of the map
     //BoxGeometry(width, height, depth, widthSegments, heightSegments, depthSegments)
     //Mesh(geometry, material)
-    //MeshLambertMaterial(properties of parameters object)
+    //MeshLambertMaterial(properties of the 'parameters' object)
     var floor = new THREE.Mesh(
         new THREE.BoxGeometry(units * unitSize, 10, units * unitSize), 
-        new THREE.MeshLambertMaterial({color: 0x00ff00}) );
+        new THREE.MeshLambertMaterial({color: 0x00ff00}));
     scene.add(floor);
 
     var cube = new THREE.BoxGeometry(unitSize, wallHeight, unitSize); 
     var wallMaterial = new THREE.MeshLambertMaterial({color: 0x00ff00});
     
-    //loopa igenom map och placera wallcubes
+    //loop through map and place wallcubes
     for(i = 0; i < mapHeight; i++){
         for(j = 0; l = map[i].length; j < l; j++){
+            //if the value of [i][j] in the 2d array 'map' is 1 (or higher), place wallcube
             if(map[i][j] > 0){
                 var wallCube = new THREE.Mesh(cube, wallMaterial);
                 wallCube.position.x = i * unitSize;
@@ -125,11 +157,14 @@ function render(){
     var delta = clock.getDelta(); //returns time since last time called
     controls.update(delta); //moves camera --------??
     
-    
     renderer.render(scene, camera); //repaints everything
+    
+    //update the bullets
+    //position, hit wall, hit player
     
     //collision check, player location and stuff??
     
+    //Game Over screen??
 }
 
 
