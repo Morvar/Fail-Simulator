@@ -1,12 +1,13 @@
 
 //Global variables
-var moveSpeed = 200, 
+var moveSpeed = 200,
+    bulletMoveSpeed = moveSpeed * 2;
     lookSpeed = 0.1, 
     unitSize = 200, 
     wallHeight = 100,
     mouse = {x: 0, y: 0};
 var width = window.innerWidth, height = window.innerHeight, aspect = width/height;
-var scene, units, camera, controls, renderer, clock, projector, animationRun = true;
+var scene, units, camera, controls, renderer, clock, projector, animationRun = true, hp = 100;
 
 var map =[//0  1  2  3  4  5  6  7  8  9
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
@@ -36,7 +37,6 @@ $(document).ready(function(){
         //prevent the default action that takes browser to new url
         e.preventDefault(); //------------ CSS in separate file?????----------
         init();
-        //radar??
         animate();
     }
     );
@@ -154,20 +154,53 @@ function animate(){
 
 //the rendering function
 function render(){
+    
     var delta = clock.getDelta(); //returns time since last time called
+    var bulletspeed = bulletMoveSpeed * delta;
     controls.update(delta); //moves camera --------??
     
-    renderer.render(scene, camera); //repaints everything
+    //update the bullets array------------??
+    //start counting from the last element so old bullets can be removed
+    for (i = bullets.length-1; i >= 0; i--) { //var i?--------------??
+        var bullet = bullets[i], //the current bullet being examined
+            pos = bullet.position, //the position of the bullet x, y, z
+            dir = bullet.ray.direction, //the direction of the bullet
+            hit = false; //has the bullet hit anything?
+        
+        //bullet collides with wall
+        if (checkWallCollision(pos)) { //if bullet collides with wall ----- write checkwallcol
+            bullets.splice(i, 1); //remove 1 bullet from bullets array
+            scene.remove(bullet); //remove the bullet from scene
+            continue; //if bullet has hit wall, skip the rest of this iteration
+        }
+        
+        //bullet collides with player             owner---------------???
+        if (dist(pos.x, pos.z, camera.position.x, camera.position.z) < 50 && bullet.owner != camera){
+            hp -= 5; //lose hp
+            if (hp < 0){ hp = 0;} //set hp to 0 if below 0
+            bullets.splice(i, 1); //remove 1 bullet from bullets array
+            scene.remove(bullet); //remove the bullet from scene
+            hit = true; //-------?
+        }
+        
+        //if bullet hasn't collided, continue moving
+        if (!hit){
+            bullet.translateX(bulletSpeed * dir.x); //move along x axis
+            bullet.translateZ(bulletSpeed * dir.z); //move along z axis
+        }
+        
+        renderer.render(scene, camera); //repaints everything
+    }
     
-    //update the bullets
-    //position, hit wall, hit player
-    
-    //collision check, player location and stuff??
     
     //Game Over screen??
 }
 
+var bullets = [];
 
-
-
+//calculate distance between objects
+function dist(x1, z1, x2, z2){
+    //pythagoras
+    return Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((y2-y1), 2);
+}
 
