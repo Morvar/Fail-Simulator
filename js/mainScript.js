@@ -188,12 +188,21 @@ function render(){
             bullet.translateX(bulletSpeed * dir.x); //move along x axis
             bullet.translateZ(bulletSpeed * dir.z); //move along z axis
         }
-        
-        renderer.render(scene, camera); //repaints everything
     }
+
+    renderer.render(scene, camera); //repaints everything
     
-    
-    //Game Over screen??
+
+    //Fade in Game Over screen??
+    if(hp <= 0){
+        animationRun = false;
+        $(renderer.domElement).fadeOut(); //fade out renderer
+        $('#startGame').fadeIn();
+        $('#startGame').html('Restart game');
+        //attach event handler event type 'click'
+        //when 'click', execute the function()
+        $('#startGame').one('click', function(){location = location;}); //---------??
+    }
 }
 
 var bullets = [];
