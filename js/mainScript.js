@@ -51,7 +51,7 @@ function init(){
     //scene setup - creating the world. the scene holds the other objects
     scene = new THREE.Scene();
     //add fog to the scene
-    scene.fog = new THREE.FogExp2(0xCCFFFF, 0.001); // (hex, density)
+    scene.fog = new THREE.FogExp2(0xCCFFFF, 0.001); //(hex, density)
     
     //create perspective camera(FOV field of view [degrees], 
     //aspect ratio[width/height of element],near, far [clipping plane. 
@@ -159,7 +159,7 @@ function render(){
     var bulletspeed = bulletMoveSpeed * delta;
     controls.update(delta); //moves camera --------??
     
-    //update the bullets array------------??
+    //update the bullets array with for loop
     //start counting from the last element so old bullets can be removed
     for (i = bullets.length-1; i >= 0; i--) { //var i?--------------??
         var bullet = bullets[i], //the current bullet being examined
@@ -168,19 +168,20 @@ function render(){
             hit = false; //has the bullet hit anything?
         
         //bullet collides with wall
-        if (checkWallCollision(pos)) { //if bullet collides with wall ----- write checkwallcol
+        if (wallCollisionCheck(pos)) { //if bullet collides with wall ----- write checkwallcol
             bullets.splice(i, 1); //remove 1 bullet from bullets array
             scene.remove(bullet); //remove the bullet from scene
             continue; //if bullet has hit wall, skip the rest of this iteration
         }
         
-        //bullet collides with player             owner---------------???
+        //bullet collides with player
+        //check owner - player (camera) can't get hit by own bullet
         if (dist(pos.x, pos.z, camera.position.x, camera.position.z) < 50 && bullet.owner != camera){
             hp -= 5; //lose hp
             if (hp < 0){ hp = 0;} //set hp to 0 if below 0
             bullets.splice(i, 1); //remove 1 bullet from bullets array
             scene.remove(bullet); //remove the bullet from scene
-            hit = true; //-------?
+            hit = true; //---------?
         }
         
         //if bullet hasn't collided, continue moving
@@ -201,15 +202,58 @@ function render(){
         $('#startGame').html('Restart game');
         //attach event handler event type 'click'
         //when 'click', execute the function()
-        $('#startGame').one('click', function(){location = location;}); //---------??
+        $('#startGame').one('click', function(){location = location;}); //------??
     }
 }
-
-var bullets = [];
-
+//________________________________________
 //calculate distance between objects
 function dist(x1, z1, x2, z2){
     //pythagoras
-    return Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((y2-y1), 2);
+    return Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((y2-y1), 2));
+}
+                     
+
+function retrieveMapSector(v){ //-------------??
+        var x = Math.floor((v.x + unitSize / 2) / unitSize + mapWidth / 2);
+        var z = Math.floor((v.z + unitSize / 2) / unitSize + mapWidth / 2);
+        return {x: x, z: z};
+}
+
+function wallCollisionCheck(v){ //------------??                                    
+    var c = retrieveMapSector(v);
+    //return true if coordinates otherwise false
+    return map[c.x][c.z] > 0;
+}
+
+var bullets = [];
+var bulletMaterial = new THREE.MeshBasicMaterial({color: 0xCC99FF});
+var bulletGeometry = new THREE.SphereGeometry(3, 5, 5);
+
+
+function addBullet(object){ //the object is the one shooting
+    if(object === undefined){ //--------------??
+        object = camera;
+    }
+    var newBullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
+    newBullet.position.set(object.position.x, object.position.y * 0.5,
+                        object.position.z);
+    if (object instanceof THREE.Camera) { //----------------??
+        var vector = new THREE.Vector3(mouse.x, mouse.y, 1); //--------??
+        projector.unprojectVector(vector, object);
+        newBullet.ray = new THREE.Ray(
+            object.position,
+            vector.subSelf(object.position).normalize());
+    }
+    else {
+        var vector = cam.position.clone();
+        sphere.ray = new t.Ray(
+            object.position,
+            vector.subSelf(object.position).normalize()
+        );
+    }
+    newBullet.owner = object; //give the bullet owner property (who fired it)
+    bullets.push(newBullet);
+    scene.add(newBullet);
+    return newBullet;
 }
 
