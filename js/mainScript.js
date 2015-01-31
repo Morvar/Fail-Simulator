@@ -2,7 +2,7 @@
 //Global variables
 var moveSpeed = 200,
     bulletMoveSpeed = moveSpeed * 2;
-    lookSpeed = 0.1, 
+    lookSpeed = 0.1, unitSize = 200, 
     wallHeight = unitSize / 2,
     mouse = {x: 0, y: 0};
 var width = window.innerWidth, 
@@ -111,16 +111,16 @@ function sceneSetup(){
     //Mesh(geometry, material)
     //MeshLambertMaterial(properties of the 'parameters' object)
     var floor = new THREE.Mesh(
-        new THREE.BoxGeometry(units * unitSize, 10, units * unitSize), 
+        new THREE.CubeGeometry(units * unitSize, 10, units * unitSize), 
         new THREE.MeshLambertMaterial({color: 0x00ff00}));
     scene.add(floor);
 
-    var cube = new THREE.BoxGeometry(unitSize, wallHeight, unitSize); 
+    var cube = new THREE.CubeGeometry(unitSize, wallHeight, unitSize); 
     var wallMaterial = new THREE.MeshLambertMaterial({color: 0x00ff00});
     
     //loop through map and place wallcubes
     for(i = 0; i < mapHeight; i++){
-        for(j = 0; l = map[i].length; j < l; j++){
+        for(j = 0, l = map[i].length; j < l; j++){
             //if the value of [i][j] in the 2d array 'map' is 1 (or higher), place wallcube
             if(map[i][j] > 0){
                 var wallCube = new THREE.Mesh(cube, wallMaterial);
@@ -134,13 +134,13 @@ function sceneSetup(){
     
     //light
     var ambLight = new THREE.AmbientLight(0x404040);
-    /*
+    
     //DirectionalLight(hex, intensity)
     var direcLight = new THREE.DirectionalLight(0x00ff00, 0.5);
     //set position of light source
 	direcLight.position.set(1, 1, 1);
 	scene.add(direcLight);
-    */
+    
 }
 
 //call render() repeatedly every time browser can render new frame
@@ -169,7 +169,7 @@ function render(){
             hit = false; //has the bullet hit anything?
         
         //bullet collides with wall
-        if (wallCollisionCheck(pos)){ //if bullet collides with wall-
+        if (checkWallCollision(pos)){ //if bullet collides with wall-
             bullets.splice(i, 1); //remove 1 bullet from bullets array
             scene.remove(bullet); //remove the bullet from scene
             continue; //if bullet has hit wall, skip the rest of this iteration
@@ -226,7 +226,7 @@ function retrieveMapSector(object){
 }
 
 //check if object has collided with a wall
-function wallCollisionCheck(object){
+function checkWallCollision(object){
     //get the map sector the object is in
     var objSec = retrieveMapSector(object);
     //return true if there is a wall there on map (>0), otherwise false
