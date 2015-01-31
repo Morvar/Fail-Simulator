@@ -3,11 +3,12 @@
 var moveSpeed = 200,
     bulletMoveSpeed = moveSpeed * 2;
     lookSpeed = 0.1, 
-    unitSize = 200, 
-    wallHeight = 100,
+    wallHeight = unitSize / 2,
     mouse = {x: 0, y: 0};
-var width = window.innerWidth, height = window.innerHeight, aspect = width/height;
-var scene, units, camera, controls, renderer, clock, projector, animationRun = true, hp = 100;
+var width = window.innerWidth, 
+    height = window.innerHeight, 
+    aspect = width/height;
+var scene, camera, controls, renderer, clock, projector, animationRun = true, hp = 100;
 
 var map =[//0  1  2  3  4  5  6  7  8  9
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
@@ -36,10 +37,10 @@ $(document).ready(function(){
 	$('#startGame').css({width: width, height: height}).one('click', function(e){
         //prevent the default action that takes browser to new url
         e.preventDefault(); //CSS in separate file?????----------??
+        $(this).fadeOut();
         init();
         animate();
-    }
-    );
+    });
 });
 
 //_________________________________________________
@@ -51,12 +52,12 @@ function init(){
     //scene setup - creating the world. the scene holds the other objects
     scene = new THREE.Scene();
     //add fog to the scene
-    scene.fog = new THREE.FogExp2(0xCCFFFF, 0.001); //(hex, density)
+    scene.fog = new THREE.FogExp2(0xCCFFFF, 0.001); //(color hex, density)
     
     //create perspective camera(FOV field of view [degrees], 
     //aspect ratio[width/height of element],near, far [clipping plane. 
     //no rendering nearer than near or beyond far. improves performance])
-    camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(75, aspect, 1, 1000);
     camera.position.y = unitSize * 0.5; //set camera height position
     scene.add(camera);
 
@@ -65,7 +66,7 @@ function init(){
 	controls = new THREE.FirstPersonControls(camera);
     controls.lookSpeed = lookSpeed; //player look around speed (mouse)
     controls.lookVertical = false; //player can't look up/down (prevents flying)
-	controls.moveSpeed = moveSpeed; //player move around speed
+	controls.movementSpeed = moveSpeed; //player move around speed
 	controls.noFly = true; //no using R/F keys for moving up/down
     
     sceneSetup(); //call function to set up the environment
@@ -103,7 +104,7 @@ function init(){
     
 function sceneSetup(){
     
-    var units = mapWidth; 
+    var units = mapWidth, unitSize = 200; 
         
     //create the floor of the map
     //BoxGeometry(width, height, depth, widthSegments, heightSegments, depthSegments)
@@ -161,14 +162,14 @@ function render(){
     
     //update the bullets array with for loop
     //start counting from the last element so old bullets can be removed
-    for (i = bullets.length-1; i >= 0; i--) { //var i?--------------??
+    for(i = bullets.length-1; i >= 0; i--){ //var i?--------------??
         var bullet = bullets[i], //the current bullet being examined
             pos = bullet.position, //the position of the bullet x, y, z
             dir = bullet.ray.direction, //the direction of the bullet
             hit = false; //has the bullet hit anything?
         
         //bullet collides with wall
-        if (wallCollisionCheck(pos)) { //if bullet collides with wall-
+        if (wallCollisionCheck(pos)){ //if bullet collides with wall-
             bullets.splice(i, 1); //remove 1 bullet from bullets array
             scene.remove(bullet); //remove the bullet from scene
             continue; //if bullet has hit wall, skip the rest of this iteration
