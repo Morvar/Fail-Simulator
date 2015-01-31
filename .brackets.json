@@ -1,6 +1,8 @@
 {
     "jscodehints.detectedExclusions": [
         "/Users/sofia/Documents/Programmering/Project/mrdoob-three.js-74e7d09/examples/js/crossfade/gui.js",
-        "/Users/sofia/Documents/Programmering/Project/Nemesis-master/main.js"
+        "/Users/sofia/Documents/Programmering/Project/Nemesis-master/main.js",
+        "/Users/sofia/Documents/Programmering/Project/js/WebGLRenderer.js",
+        "/Users/sofia/Documents/Programmering/Project/js/three.min.js"
     ]
 }

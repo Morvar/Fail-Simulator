@@ -10,6 +10,8 @@ var width = window.innerWidth,
     aspect = width/height;
 var scene, camera, controls, renderer, clock, projector, animationRun = true, hp = 100;
 
+var bullets = [];
+
 var map =[//0  1  2  3  4  5  6  7  8  9
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 1
@@ -112,7 +114,7 @@ function sceneSetup(){
     //MeshLambertMaterial(properties of the 'parameters' object)
     var floor = new THREE.Mesh(
         new THREE.CubeGeometry(units * unitSize, 10, units * unitSize), 
-        new THREE.MeshLambertMaterial({color: 0x00ff00}));
+        new THREE.MeshLambertMaterial({color: 0x0000ff}));
     scene.add(floor);
 
     var cube = new THREE.CubeGeometry(unitSize, wallHeight, unitSize); 
@@ -157,7 +159,7 @@ function animate(){
 function render(){
     
     var delta = clock.getDelta(); //returns time since last time called
-    var bulletspeed = bulletMoveSpeed * delta;
+    var bulletSpeed = bulletMoveSpeed * delta;
     controls.update(delta); //moves camera ------------??
     
     //update the bullets array with for loop
@@ -212,16 +214,16 @@ function render(){
 //calculate distance between objects
 function dist(x1, z1, x2, z2){
     //pythagoras
-    return Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((y2-y1), 2));
+    return Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((z2-z1), 2));
 }
                      
 //find out which map sector object is in -------------------??
 function retrieveMapSector(object){
     //
-    var x = Math.floor(object.x / unitSize);
-            //Math.floor((object.x + unitSize / 2) / unitSize); + mapWidth / 2);
-    var z = Math.floor(object.x / unitSize);
-            //Math.floor((object.z + unitSize / 2) / unitSize); + mapWidth / 2);
+    var x = //Math.floor(object.x / unitSize);
+            Math.floor((object.x + unitSize / 2) / unitSize + mapWidth / 2);
+    var z = //Math.floor(object.x / unitSize);
+            Math.floor((object.z + unitSize / 2) / unitSize + mapWidth / 2);
     return {x: x, z: z};
 }
 
@@ -233,7 +235,6 @@ function checkWallCollision(object){
     return map[objSec.x][objSec.z] > 0;
 }
 
-var bullets = [];
 var bulletMaterial = new THREE.MeshBasicMaterial({color: 0xCC99FF});
 var bulletGeometry = new THREE.SphereGeometry(3, 5, 5);
 
