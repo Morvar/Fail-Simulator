@@ -1,9 +1,9 @@
 
 //Global variables
-var moveSpeed = 200,
-    bulletMoveSpeed = moveSpeed * 2;
-    lookSpeed = 0.1, unitSize = 200, 
-    wallHeight = unitSize / 2,
+var moveSpeed = 500,
+    bulletMoveSpeed = moveSpeed * 15;
+    lookSpeed = 0.4, unitSize = 400, 
+    wallHeight = unitSize,
     mouse = {x: 0, y: 0};
 var width = window.innerWidth, 
     height = window.innerHeight, 
@@ -15,9 +15,9 @@ var bullets = [];
 var map =[//0  1  2  3  4  5  6  7  8  9
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 1
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 2
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 3
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 4
+           [1, 0, 0, 0, 0, 0, 1, 0, 0, 1], // 2
+           [1, 0, 1, 0, 0, 0, 0, 0, 0, 1], // 3
+           [1, 0, 0, 0, 1, 0, 0, 0, 0, 1], // 4
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 5
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 6
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 7
@@ -54,13 +54,15 @@ function init(){
     //scene setup - creating the world. the scene holds the other objects
     scene = new THREE.Scene();
     //add fog to the scene
-    scene.fog = new THREE.FogExp2(0xCCFFFF, 0.001); //(color hex, density)
+    scene.fog = new THREE.FogExp2(0x00AAFF, 0.001); //(color hex, density)
     
     //create perspective camera(FOV field of view [degrees], 
     //aspect ratio[width/height of element],near, far [clipping plane. 
     //no rendering nearer than near or beyond far. improves performance])
-    camera = new THREE.PerspectiveCamera(75, aspect, 1, 1000);
+    camera = new THREE.PerspectiveCamera(60, aspect, 1, 15000);
     camera.position.y = unitSize * 0.5; //set camera height position
+    camera.position.x = mapWidth/2; //-----?
+    camera.position.z = mapHeight/2;
     scene.add(camera);
 
     //FirstPersonControls: move camera with mouse, player using WASD/arrow keys
@@ -106,7 +108,7 @@ function init(){
     
 function sceneSetup(){
     
-    var units = mapWidth, unitSize = 200; 
+    var units = mapWidth;
         
     //create the floor of the map
     //BoxGeometry(width, height, depth, widthSegments, heightSegments, depthSegments)
@@ -114,7 +116,10 @@ function sceneSetup(){
     //MeshLambertMaterial(properties of the 'parameters' object)
     var floor = new THREE.Mesh(
         new THREE.CubeGeometry(units * unitSize, 10, units * unitSize), 
-        new THREE.MeshLambertMaterial({color: 0x0000ff}));
+        new THREE.MeshLambertMaterial({color: 0xff0000}));
+    //change floor coordinates
+    //floor.position.x = units/2 * unitSize;
+    //floor.position.z = units/2 * unitSize;
     scene.add(floor);
 
     var cube = new THREE.CubeGeometry(unitSize, wallHeight, unitSize); 
@@ -126,22 +131,27 @@ function sceneSetup(){
             //if the value of [i][j] in the 2d array 'map' is 1 (or higher), place wallcube
             if(map[i][j] > 0){
                 var wallCube = new THREE.Mesh(cube, wallMaterial);
-                wallCube.position.x = i * unitSize;
+                //center map around 0,0 coords
+                wallCube.position.x = (i - units/2) * unitSize;
                 wallCube.position.y = wallHeight/2;
-                wallCube.position.z = j * unitSize;
+                wallCube.position.z = (j - units/2) * unitSize;
                 scene.add(wallCube);
             }
         }
     }
     
     //light
-    var ambLight = new THREE.AmbientLight(0x404040);
-    
+    //var ambLight = new THREE.AmbientLight(0x404040);
+    //scene.add(ambLight);
+
     //DirectionalLight(hex, intensity)
-    var direcLight = new THREE.DirectionalLight(0x00ff00, 0.5);
+    var direcLight1 = new THREE.DirectionalLight(0x00ff00, 0.5);
+    var direcLight2 = new THREE.DirectionalLight(0x00ff00, 0.5);
     //set position of light source
-	direcLight.position.set(1, 1, 1);
-	scene.add(direcLight);
+	direcLight1.position.set(0.5, 1, 0.5);
+    direcLight2.position.set(-0.5, 1, -0.5);
+	scene.add(direcLight1);
+    scene.add(direcLight2);
     
 }
 
@@ -246,7 +256,7 @@ function addBullet(object){ //the object is the one shooting
     //create the new bullet
     var newBullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
     //set new bullets position to position of shooter
-    newBullet.position.set(object.position.x, object.position.y * 0.5,
+    newBullet.position.set(object.position.x, object.position.y * 0.8,
                         object.position.z);
     
     if (object instanceof THREE.Camera) { //----------------??
@@ -298,7 +308,7 @@ $(window).resize(function(){
 
 //when browser window is in focus, do not freeze controls.
 $(window).focus(function(){
-    if(controls){controls.freeze = false;} //freeze == enabled? --------------?
+    if(controls){controls.freeze = false;} //freeze,enabled?
 });
 //when browser window is out of focus (blurred), no moving around.
 $(window).blur(function(){
