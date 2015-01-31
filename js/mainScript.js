@@ -116,7 +116,7 @@ function sceneSetup(){
     //MeshLambertMaterial(properties of the 'parameters' object)
     var floor = new THREE.Mesh(
         new THREE.CubeGeometry(units * unitSize, 10, units * unitSize), 
-        new THREE.MeshLambertMaterial({color: 0xff0000}));
+        new THREE.MeshLambertMaterial({color: 0x7A5C00}));
     //change floor coordinates
     //floor.position.x = units/2 * unitSize;
     //floor.position.z = units/2 * unitSize;
@@ -141,19 +141,23 @@ function sceneSetup(){
     }
     
     //light
-    //var ambLight = new THREE.AmbientLight(0x404040);
-    //scene.add(ambLight);
+    var ambLight = new THREE.AmbientLight(0x303030);
+    scene.add(ambLight);
 
     //DirectionalLight(hex, intensity)
-    var direcLight1 = new THREE.DirectionalLight(0x00ff00, 0.5);
-    var direcLight2 = new THREE.DirectionalLight(0x00ff00, 0.5);
+    var direcLight1 = new THREE.DirectionalLight(0xffffff, 0.5);
+    var direcLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
     //set position of light source
 	direcLight1.position.set(0.5, 1, 0.5);
     direcLight2.position.set(-0.5, 1, -0.5);
 	scene.add(direcLight1);
     scene.add(direcLight2);
-    
+
+    var direcLight3 = new THREE.DirectionalLight(0xffffff, 0.5);
+    direcLight3.position.set(0, 400, 0);
+    scene.add(direcLight3);
 }
+
 
 //call render() repeatedly every time browser can render new frame
 function animate(){
