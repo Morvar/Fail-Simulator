@@ -35,7 +35,7 @@ $(document).ready(function(){
     //when 'click', execute the function(e)
 	$('#startGame').css({width: width, height: height}).one('click', function(e){
         //prevent the default action that takes browser to new url
-        e.preventDefault(); //------------ CSS in separate file?????----------
+        e.preventDefault(); //CSS in separate file?????----------??
         init();
         animate();
     }
@@ -92,11 +92,11 @@ function init(){
         //shoot with left click (id 1) or left shift (id 16)
         //.which property indicates which key is pressed
         if (e.which === 1 || e.which === 16) {
-            addBullet(); //-----------------------write this function
+            addBullet();
         }
     });
     
-    //heads-up display??-----
+    //heads-up display??-----------??
     
 }
 
@@ -157,7 +157,7 @@ function render(){
     
     var delta = clock.getDelta(); //returns time since last time called
     var bulletspeed = bulletMoveSpeed * delta;
-    controls.update(delta); //moves camera --------??
+    controls.update(delta); //moves camera ------------??
     
     //update the bullets array with for loop
     //start counting from the last element so old bullets can be removed
@@ -168,7 +168,7 @@ function render(){
             hit = false; //has the bullet hit anything?
         
         //bullet collides with wall
-        if (wallCollisionCheck(pos)) { //if bullet collides with wall ----- write checkwallcol
+        if (wallCollisionCheck(pos)) { //if bullet collides with wall-
             bullets.splice(i, 1); //remove 1 bullet from bullets array
             scene.remove(bullet); //remove the bullet from scene
             continue; //if bullet has hit wall, skip the rest of this iteration
@@ -199,30 +199,37 @@ function render(){
         animationRun = false;
         $(renderer.domElement).fadeOut(); //fade out renderer
         $('#startGame').fadeIn();
-        $('#startGame').html('Restart game');
+        $('#startGame').html('Restart game'); //--------??
         //attach event handler event type 'click'
         //when 'click', execute the function()
         $('#startGame').one('click', function(){location = location;}); //------??
     }
 }
-//________________________________________
+
+//_____________________________________________________________
+
 //calculate distance between objects
 function dist(x1, z1, x2, z2){
     //pythagoras
     return Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((y2-y1), 2));
 }
                      
-
-function retrieveMapSector(v){ //-------------??
-        var x = Math.floor((v.x + unitSize / 2) / unitSize + mapWidth / 2);
-        var z = Math.floor((v.z + unitSize / 2) / unitSize + mapWidth / 2);
-        return {x: x, z: z};
+//find out which map sector object is in -------------------??
+function retrieveMapSector(object){
+    //
+    var x = Math.floor(object.x / unitSize);
+            //Math.floor((object.x + unitSize / 2) / unitSize); + mapWidth / 2);
+    var z = Math.floor(object.x / unitSize);
+            //Math.floor((object.z + unitSize / 2) / unitSize); + mapWidth / 2);
+    return {x: x, z: z};
 }
 
-function wallCollisionCheck(v){ //------------??                                    
-    var c = retrieveMapSector(v);
-    //return true if coordinates otherwise false
-    return map[c.x][c.z] > 0;
+//check if object has collided with a wall
+function wallCollisionCheck(object){
+    //get the map sector the object is in
+    var objSec = retrieveMapSector(object);
+    //return true if there is a wall there on map (>0), otherwise false
+    return map[objSec.x][objSec.z] > 0;
 }
 
 var bullets = [];
@@ -234,26 +241,64 @@ function addBullet(object){ //the object is the one shooting
     if(object === undefined){ //--------------??
         object = camera;
     }
+    //create the new bullet
     var newBullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
+    //set new bullets position to position of shooter
     newBullet.position.set(object.position.x, object.position.y * 0.5,
                         object.position.z);
+    
     if (object instanceof THREE.Camera) { //----------------??
-        var vector = new THREE.Vector3(mouse.x, mouse.y, 1); //--------??
+        var vector = new THREE.Vector3(mouse.x, mouse.y, 1); //-------------??
         projector.unprojectVector(vector, object);
         newBullet.ray = new THREE.Ray(
             object.position,
             vector.subSelf(object.position).normalize());
     }
     else {
-        var vector = cam.position.clone();
-        sphere.ray = new t.Ray(
+        var vector = camera.position.clone();
+        newBullet.ray = new THREE.Ray(
             object.position,
-            vector.subSelf(object.position).normalize()
-        );
+            vector.subSelf(object.position).normalize());
     }
     newBullet.owner = object; //give the bullet owner property (who fired it)
-    bullets.push(newBullet);
-    scene.add(newBullet);
-    return newBullet;
+    bullets.push(newBullet); //add the new bullet to bullets array
+    scene.add(newBullet); //add the new bullet to scene
+    return newBullet; //------------?
 }
 
+//handle mouse move
+function onDocumentMouseMove(e){
+    //prevent mouse default actions from firing (i.e. trackballcontrols)
+    e.preventDefault();
+    //clientX returns mouse x coord
+    //(number between 0&1)*2 = number between 0&2. between 0&2-1 = between -1&1
+    //make 0,0 coord in lower right corner
+    mouse.x = (e.clientX / width) * 2 - 1;
+    mouse.y = - (e.clientY / height) * 2 + 1;
+}
+
+//resize window
+$(window).resize(function(){
+    //set global variables width,height to window size values
+    width = window.innerWidth;
+    height = window.innerHeight;
+    aspect = width / height;
+    if(camera){
+        camera.aspect = aspect;
+        //update camera matrix with the new values
+        camera.updateProjectionMatrix();
+    }
+    if(renderer){
+        //give renderer the new size
+        renderer.setSize(width, height);
+    }
+});
+
+//when browser window is in focus, do not freeze controls.
+$(window).focus(function(){
+    if(controls){controls.freeze = false;} //freeze == enabled? --------------?
+});
+//when browser window is out of focus (blurred), no moving around.
+$(window).blur(function(){
+    if(controls){controls.freeze = true;}
+});
