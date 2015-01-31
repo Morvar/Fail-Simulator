@@ -116,14 +116,14 @@ function sceneSetup(){
     //MeshLambertMaterial(properties of the 'parameters' object)
     var floor = new THREE.Mesh(
         new THREE.CubeGeometry(units * unitSize, 10, units * unitSize), 
-        new THREE.MeshLambertMaterial({color: 0x7A5C00}));
+        new THREE.MeshLambertMaterial({color: 0x164016}));
     //change floor coordinates
     //floor.position.x = units/2 * unitSize;
     //floor.position.z = units/2 * unitSize;
     scene.add(floor);
 
     var cube = new THREE.CubeGeometry(unitSize, wallHeight, unitSize); 
-    var wallMaterial = new THREE.MeshLambertMaterial({color: 0x00ff00});
+    var wallMaterial = new THREE.MeshLambertMaterial({color: 0x333300});
     
     //loop through map and place wallcubes
     for(i = 0; i < mapHeight; i++){
@@ -153,7 +153,7 @@ function sceneSetup(){
 	scene.add(direcLight1);
     scene.add(direcLight2);
 
-    var direcLight3 = new THREE.DirectionalLight(0xffffff, 0.5);
+    var direcLight3 = new THREE.DirectionalLight(0x006666, 0.2);
     direcLight3.position.set(0, 400, 0);
     scene.add(direcLight3);
 }
