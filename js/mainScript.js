@@ -122,13 +122,8 @@ function sceneSetup(){
     //floor.position.z = units/2 * unitSize;
     scene.add(floor);
 
-    var cube = new THREE.CubeGeometry(unitSize, wallHeight, unitSize);
-    var wallTexture = THREE.ImageUtils.loadTexture('img/pink_cloud.jpg');
-        wallTexture.wrapS = THREE.RepeatWrapping;
-        wallTexture.wrapT = THREE.RepeatWrapping; 
-        wallTexture.texture.repeat.set( 4, 4 );
-    
-    var wallMaterial = new THREE.MeshLambertMaterial(wallTexture);
+    var cube = new THREE.CubeGeometry(unitSize, wallHeight, unitSize); 
+    var wallMaterial = new THREE.MeshLambertMaterial({color: 0x333300});
     
     //loop through map and place wallcubes
     for(i = 0; i < mapHeight; i++){
