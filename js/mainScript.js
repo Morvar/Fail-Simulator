@@ -2,7 +2,7 @@
 //Global variables
 var moveSpeed = 500,
     bulletMoveSpeed = moveSpeed * 15;
-    lookSpeed = 0.4, unitSize = 400, 
+    lookSpeed = 0.3, unitSize = 400, 
     wallHeight = unitSize,
     mouse = {x: 0, y: 0};
 var width = window.innerWidth, 
@@ -15,7 +15,7 @@ var bullets = [];
 var map =[//0  1  2  3  4  5  6  7  8  9
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 1
-           [1, 0, 0, 0, 0, 0, 1, 0, 0, 1], // 2
+           [1, 0, 0, 0, 1, 0, 0, 0, 0, 1], // 2
            [1, 0, 1, 0, 0, 0, 0, 0, 0, 1], // 3
            [1, 0, 0, 0, 1, 0, 0, 0, 0, 1], // 4
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 5
@@ -97,7 +97,7 @@ function init(){
         //shoot with left click (id 1) or left shift (id 16)
         //.which property indicates which key is pressed
         if (e.which === 1 || e.which === 16) {
-            addBullet();
+            addBullet(); hp -= 50; //----------------------?
         }
     });
     
@@ -198,7 +198,7 @@ function render(){
             if (hp < 0){ hp = 0;} //set hp to 0 if below 0
             bullets.splice(i, 1); //remove 1 bullet from bullets array
             scene.remove(bullet); //remove the bullet from scene
-            hit = true; //---------?
+            hit = true; //(will this be needed?)
         }
         
         //if bullet hasn't collided, continue moving
@@ -216,10 +216,11 @@ function render(){
         animationRun = false;
         $(renderer.domElement).fadeOut(); //fade out renderer
         $('#startGame').fadeIn();
-        $('#startGame').html('Restart game'); //--------??
+        $('#startGame').html('Return to Main Menu'); //change html text
         //attach event handler event type 'click'
         //when 'click', execute the function()
-        $('#startGame').one('click', function(){location = location;}); //------??
+        //reload the page by setting url to same url?
+        $('#startGame').one('click', function(){location = location;});
     }
 }
 
@@ -231,7 +232,7 @@ function dist(x1, z1, x2, z2){
     return Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((z2-z1), 2));
 }
                      
-//find out which map sector object is in -------------------??
+//find out which map sector object is in
 function retrieveMapSector(object){
     //
     var x = //Math.floor(object.x / unitSize);
@@ -254,7 +255,7 @@ var bulletGeometry = new THREE.SphereGeometry(3, 5, 5);
 
 
 function addBullet(object){ //the object is the one shooting
-    if(object === undefined){ //--------------??
+    if(object === undefined){ //fix camera undefined bug
         object = camera;
     }
     //create the new bullet
@@ -262,24 +263,29 @@ function addBullet(object){ //the object is the one shooting
     //set new bullets position to position of shooter
     newBullet.position.set(object.position.x, object.position.y * 0.8,
                         object.position.z);
-    
-    if (object instanceof THREE.Camera) { //----------------??
-        var vector = new THREE.Vector3(mouse.x, mouse.y, 1); //-------------??
+    //if the object shooting is a camera, shoot the bullet in the cursors direction
+    if (object instanceof THREE.Camera) {
+        var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
+        //translate vector from 2D to 3D
         projector.unprojectVector(vector, object);
+        //create new bullet as a ray starting at shooter's position
+        //(position of camera, direction to shoot)
         newBullet.ray = new THREE.Ray(
             object.position,
-            vector.subSelf(object.position).normalize());
+            vector.subSelf(object.position).normalize()); //---------?
     }
+    
     else {
         var vector = camera.position.clone();
         newBullet.ray = new THREE.Ray(
             object.position,
-            vector.subSelf(object.position).normalize());
+            vector.subSelf(object.position).normalize()); //---------?
     }
+    
     newBullet.owner = object; //give the bullet owner property (who fired it)
     bullets.push(newBullet); //add the new bullet to bullets array
     scene.add(newBullet); //add the new bullet to scene
-    return newBullet; //------------?
+    //return newBullet;
 }
 
 //handle mouse move
