@@ -8,7 +8,7 @@ var moveSpeed = 500,
 var width = window.innerWidth, 
     height = window.innerHeight, 
     aspect = width/height;
-var scene, camera, controls, renderer, clock, projector, animationRun = true, hp = 100;
+var scene, camera, controls, renderer, clock, projector, animationRun = true, hp = 100, bulletDamage = 10;
 
 var bullets = [];
 
@@ -32,17 +32,24 @@ var map =[//0  1  2  3  4  5  6  7  8  9
 //$(selector).action()
 $(document).ready(function(){
     //add a start game click text
-	$('body').append('<div id="startGame">Start Game</div>');
+	$('body').append('<div id="startGame">Click to start game</div>');
     //on element with id startGame add css properties width,height
     //attach event handler event type 'click'
     //when 'click', execute the function(e)
-	$('#startGame').css({width: width, height: height}).one('click', function(e){
+    $("#startGame").click(function(e){
         //prevent the default action that takes browser to new url
         e.preventDefault(); //CSS in separate file?????----------??
         $(this).fadeOut();
         init();
         animate();
     });
+	/*$('#startGame').css({width: width, height: height}).one('click', function(e){
+        //prevent the default action that takes browser to new url
+        e.preventDefault(); //CSS in separate file?????----------??
+        $(this).fadeOut();
+        init();
+        animate();
+    });*/
 });
 
 //_________________________________________________
@@ -102,6 +109,7 @@ function init(){
     });
     
     //heads-up display??-----------??
+    $('body').append('<div id="hud"><p>HP: <span id="hp">100</span><br/>Kills: <span id="kills">0</span></p></div>');
     
 }
 
@@ -194,7 +202,7 @@ function render(){
         //bullet collides with player
         //check owner - player (camera) can't get hit by own bullet
         if (dist(pos.x, pos.z, camera.position.x, camera.position.z) < 50 && bullet.owner != camera){
-            hp -= 5; //lose hp
+            hp -= bulletDamage; //lose hp
             if (hp < 0){ hp = 0;} //set hp to 0 if below 0
             bullets.splice(i, 1); //remove 1 bullet from bullets array
             scene.remove(bullet); //remove the bullet from scene
