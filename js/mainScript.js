@@ -38,11 +38,12 @@ $(document).ready(function(){
     //when 'click', execute the function(e)
     $("#startGame").click(function(e){
         //prevent the default action that takes browser to new url
-        e.preventDefault(); //CSS in separate file?????----------??
+        e.preventDefault();
         $(this).fadeOut();
         init();
         animate();
     });
+    
 	/*$('#startGame').css({width: width, height: height}).one('click', function(e){
         //prevent the default action that takes browser to new url
         e.preventDefault(); //CSS in separate file?????----------??
@@ -104,7 +105,7 @@ function init(){
         //shoot with left click (id 1) or left shift (id 16)
         //.which property indicates which key is pressed
         if (e.which === 1 || e.which === 16) {
-            addBullet(); hp -= 50; //----------------------?
+            addBullet(); hp -= 20; //----------------------?
         }
     });
     
@@ -112,7 +113,7 @@ function init(){
     $('body').append('<div id="hud"><p>HP: <span id="hp">100</span><br/>Kills: <span id="kills">0</span></p></div>');
     
 }
-
+//_________________________________________________
     
 function sceneSetup(){
     
@@ -223,6 +224,7 @@ function render(){
     if(hp <= 0){
         animationRun = false;
         $(renderer.domElement).fadeOut(); //fade out renderer
+        $('#hud').fadeOut(); //fade out HUD
         $('#startGame').fadeIn();
         $('#startGame').html('Return to Main Menu'); //change html text
         //attach event handler event type 'click'
@@ -261,7 +263,7 @@ function checkWallCollision(object){
 var bulletMaterial = new THREE.MeshBasicMaterial({color: 0xCC99FF});
 var bulletGeometry = new THREE.SphereGeometry(3, 5, 5);
 
-
+//_________________________________________________
 function addBullet(object){ //the object is the one shooting
     if(object === undefined){ //fix camera undefined bug
         object = camera;
