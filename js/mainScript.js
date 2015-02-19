@@ -2,13 +2,13 @@
 //Global variables
 var moveSpeed = 500,
     bulletMoveSpeed = moveSpeed * 15;
-    lookSpeed = 0.3, unitSize = 400, 
+    defaultLookSpeed = 3, unitSize = 400, 
     wallHeight = unitSize,
     mouse = {x: 0, y: 0};
 var width = window.innerWidth, 
     height = window.innerHeight, 
     aspect = width/height;
-var scene, camera, controls, renderer, clock, projector, animationRun = true, hp = 100, bulletDamage = 10;
+var scene, camera, controls, renderer, clock, projector, animationRun = true, hp = 100, bulletDamage = 10, lastMouseMoveTime, currentLookSpeed = defaultLookSpeed;
 
 var bullets = [];
 
@@ -82,7 +82,7 @@ function init(){
     //FirstPersonControls: move camera with mouse, player using WASD/arrow keys
     //takes the camera object as argument
 	controls = new THREE.FirstPersonControls(camera);
-    controls.lookSpeed = lookSpeed; //player look around speed (mouse)
+    controls.currentLookSpeed = currentLookSpeed; //player look around speed (mouse)
     controls.lookVertical = false; //player can't look up/down (prevents flying)
 	controls.movementSpeed = moveSpeed; //player move around speed
 	controls.noFly = true; //no using R/F keys for moving up/down
@@ -222,6 +222,13 @@ function render(){
             bullet.translateZ(bulletSpeed * dir.z); //move along z axis
         }
     }
+    var dateNow2 = new Date();
+    var currentTime = dateNow2.getTime();
+    if(currentTime - lastMouseMoveTime > 1000){
+        console.log("yup");
+        currentLookSpeed = 0;
+    }
+    lastMouseMoveTime = 0;
 
     renderer.render(scene, camera); //repaints everything
     
@@ -313,6 +320,9 @@ function onDocumentMouseMove(e){
     //make 0,0 coord in lower right corner
     mouse.x = (e.clientX / width) * 2 - 1;
     mouse.y = - (e.clientY / height) * 2 + 1;
+    var dateNow1 = new Date();
+    lastMouseMoveTime = dateNow1.getTime();
+    currentLookSpeed = defaultLookSpeed;
 }
 
 //resize window
