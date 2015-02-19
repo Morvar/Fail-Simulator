@@ -25,7 +25,13 @@ var map =[//0  1  2  3  4  5  6  7  8  9
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 9
            ], 
             mapWidth = map[0].length, mapHeight = map.length;
-
+    
+//Map colors:
+var floorColor = {color: 0x164016},
+    skyColor = '#85D6FF',
+    bulletColor = {color: 0xCC99FF},
+    wall1Color = {color: 0x333300},
+    fogColor = 0x00AAFF;
 //_________________________________________________
 
 //initialize, run when document is ready
@@ -62,7 +68,7 @@ function init(){
     //scene setup - creating the world. the scene holds the other objects
     scene = new THREE.Scene();
     //add fog to the scene
-    scene.fog = new THREE.FogExp2(0x00AAFF, 0.001); //(color hex, density)
+    scene.fog = new THREE.FogExp2(fogColor, 0.001); //(color hex, density)
     
     //create perspective camera(FOV field of view [degrees], 
     //aspect ratio[width/height of element],near, far [clipping plane. 
@@ -88,7 +94,7 @@ function init(){
     renderer.setSize(width, height);
     
     //change background canvas color
-    renderer.domElement.style.backgroundColor = '#85D6FF';
+    renderer.domElement.style.backgroundColor = skyColor;
     //append the renderer as a child node to the body of the HTML document.
     //three.js creates a canvas inside body element for rendering the scene
     document.body.appendChild(renderer.domElement); //add to document body
@@ -125,14 +131,14 @@ function sceneSetup(){
     //MeshLambertMaterial(properties of the 'parameters' object)
     var floor = new THREE.Mesh(
         new THREE.CubeGeometry(units * unitSize, 10, units * unitSize), 
-        new THREE.MeshLambertMaterial({color: 0x164016}));
+        new THREE.MeshLambertMaterial(floorColor));
     //change floor coordinates
     //floor.position.x = units/2 * unitSize;
     //floor.position.z = units/2 * unitSize;
     scene.add(floor);
 
     var cube = new THREE.CubeGeometry(unitSize, wallHeight, unitSize); 
-    var wallMaterial = new THREE.MeshLambertMaterial({color: 0x333300});
+    var wallMaterial = new THREE.MeshLambertMaterial(wall1Color);
     
     //loop through map and place wallcubes
     for(i = 0; i < mapHeight; i++){
@@ -260,7 +266,7 @@ function checkWallCollision(object){
     return map[objSec.x][objSec.z] > 0;
 }
 
-var bulletMaterial = new THREE.MeshBasicMaterial({color: 0xCC99FF});
+var bulletMaterial = new THREE.MeshBasicMaterial(bulletColor);
 var bulletGeometry = new THREE.SphereGeometry(3, 5, 5);
 
 //_________________________________________________
