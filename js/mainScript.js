@@ -2,13 +2,13 @@
 //Global variables
 var moveSpeed = 500,
     bulletMoveSpeed = moveSpeed * 15;
-    defaultLookSpeed = 3, unitSize = 400, 
+    defaultLookSpeed = 3, currentLookSpeed = defaultLookSpeed, unitSize = 400, 
     wallHeight = unitSize,
     mouse = {x: 0, y: 0};
 var width = window.innerWidth, 
     height = window.innerHeight, 
     aspect = width/height;
-var scene, camera, controls, renderer, clock, projector, animationRun = true, hp = 100, bulletDamage = 10, lastMouseMoveTime, currentLookSpeed = defaultLookSpeed;
+var scene, camera, controls, renderer, clock, projector, animationRun = false, paused = false, hp = 100, bulletDamage = 10, lastMouseMoveTime;
 
 var bullets = [];
 
@@ -47,6 +47,7 @@ $(document).ready(function(){
         e.preventDefault();
         $(this).fadeOut();
         init();
+        animationRun = true;
         animate();
     });
     
@@ -110,12 +111,12 @@ function init(){
         e.preventDefault;
         //shoot with left click (id 1) or left shift (id 16)
         //.which property indicates which key is pressed
-        if (e.which === 1 || e.which === 16) {
-            addBullet(); hp -= 20; //-----------temporary way to die
+        if (animationRun && e.which === 1 || animationRun && e.which === 16) {
+            addBullet(); hp -= 10; //-----------temporary way to die
         }
     });
     
-    //heads-up display
+    //heads-up display----------------------??
     $('body').append('<div id="hud"><p>HP: <span id="hp">100</span><br/>Kills: <span id="kills">0</span></p></div>');
     
 }
@@ -275,8 +276,13 @@ function retrieveMapSector(object){
 function checkWallCollision(object){
     //get the map sector the object is in
     var objSec = retrieveMapSector(object);
-    //return true if there is a wall there on map (>0), otherwise false
-    return map[objSec.x][objSec.z] > 0;
+    //return true if there is a wall there on map (>0) 
+    // or bullet position is undefined, otherwise false
+    //Still not working -----------------------------??
+    if(map[objSec.x][objSec.z] > 0 || objSec.x === undefined || map[objSec.x][objSec.z] === undefined || object === undefined){
+        return true;
+    }
+    else return false;
 }
 
 var bulletMaterial = new THREE.MeshBasicMaterial(bulletColor);
@@ -302,6 +308,7 @@ function addBullet(object){ //the object is the one shooting
         newBullet.ray = new THREE.Ray(
             object.position,
             vector.subSelf(object.position).normalize()); //---------?
+        console.log("Player fired a bullet");
     }
     
     else {
@@ -330,6 +337,28 @@ function onDocumentMouseMove(e){
     lastMouseMoveTime = dateNow1.getTime();
     currentLookSpeed = defaultLookSpeed;
 }
+
+
+//handle key press (pause)
+function keyDown(e){
+    //prevent scrolling
+    e.preventDefault();
+    //space key down
+    if(e.keyCode == 32){
+        if(animationRun){
+        animationRun = false;
+        paused = true; //---------declare global!
+        console.log("Space was pressed, game is paused");
+        }
+        else if(animationRun == false && paused == true){
+        animationRun = true;
+        paused = false;
+        animate();
+        console.log("Space was pressed, game is running");
+        }
+    }
+}
+
 
 //resize window
 $(window).resize(function(){
