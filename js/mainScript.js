@@ -111,11 +111,11 @@ function init(){
         //shoot with left click (id 1) or left shift (id 16)
         //.which property indicates which key is pressed
         if (e.which === 1 || e.which === 16) {
-            addBullet(); hp -= 20; //----------------------?
+            addBullet(); hp -= 20; //-----------temporary way to die
         }
     });
     
-    //heads-up display??-----------??
+    //heads-up display
     $('body').append('<div id="hud"><p>HP: <span id="hp">100</span><br/>Kills: <span id="kills">0</span></p></div>');
     
 }
@@ -189,11 +189,11 @@ function render(){
     
     var delta = clock.getDelta(); //returns time since last time called
     var bulletSpeed = bulletMoveSpeed * delta;
-    controls.update(delta); //moves camera ------------??
+    controls.update(delta); //moves camera
     
     //update the bullets array with for loop
     //start counting from the last element so old bullets can be removed
-    for(i = bullets.length-1; i >= 0; i--){ //var i?--------------??
+    for(i = bullets.length-1; i >= 0; i--){
         var bullet = bullets[i], //the current bullet being examined
             pos = bullet.position, //the position of the bullet x, y, z
             dir = bullet.ray.direction, //the direction of the bullet
@@ -222,18 +222,24 @@ function render(){
             bullet.translateZ(bulletSpeed * dir.z); //move along z axis
         }
     }
+    
+    //Get current time
     var dateNow2 = new Date();
     var currentTime = dateNow2.getTime();
+    //compare to last time mousemove was triggered
+    //if mouse has been inactive long enough, stop spinning camera
     if(currentTime - lastMouseMoveTime > 1000){
         console.log("yup");
         currentLookSpeed = 0;
     }
+    //reset lastMouseMoveTime
     lastMouseMoveTime = 0;
-
-    renderer.render(scene, camera); //repaints everything
+    
+    //repaint everything
+    renderer.render(scene, camera);
     
 
-    //Fade in Game Over screen??
+    //Fade in Game Over screen
     if(hp <= 0){
         animationRun = false;
         $(renderer.domElement).fadeOut(); //fade out renderer
