@@ -2,7 +2,7 @@
 //Global variables
 var moveSpeed = 500,
     bulletMoveSpeed = moveSpeed * 15;
-    defaultLookSpeed = 3, currentLookSpeed = defaultLookSpeed, unitSize = 400, 
+    defaultLookSpeed = 0.8, currentLookSpeed = defaultLookSpeed, unitSize = 400, 
     wallHeight = unitSize,
     mouse = {x: 0, y: 0};
 var width = window.innerWidth, 
@@ -83,7 +83,7 @@ function init(){
     //FirstPersonControls: move camera with mouse, player using WASD/arrow keys
     //takes the camera object as argument
 	controls = new THREE.FirstPersonControls(camera);
-    controls.currentLookSpeed = currentLookSpeed; //player look around speed (mouse)
+    controls.lookSpeed = currentLookSpeed; //player look around speed (mouse)
     controls.lookVertical = false; //player can't look up/down (prevents flying)
 	controls.movementSpeed = moveSpeed; //player move around speed
 	controls.noFly = true; //no using R/F keys for moving up/down
@@ -112,7 +112,7 @@ function init(){
         //shoot with left click (id 1) or left shift (id 16)
         //.which property indicates which key is pressed
         if (animationRun && e.which === 1 || animationRun && e.which === 16) {
-            addBullet(); hp -= 10; //-----------temporary way to die
+            addBullet(); hp -= 5; //-----------temporary way to die
         }
     });
     
@@ -230,11 +230,13 @@ function render(){
     //compare to last time mousemove was triggered
     //if mouse has been inactive long enough, stop spinning camera
     if(currentTime - lastMouseMoveTime > 1000){
-        console.log("yup");
         currentLookSpeed = 0;
+        controls.lookSpeed = currentLookSpeed;
+        console.log("controls.lookSpeed set to 0");
     }
     //reset lastMouseMoveTime
     lastMouseMoveTime = 0;
+    
     
     //repaint everything
     renderer.render(scene, camera);
@@ -263,23 +265,31 @@ function dist(x1, z1, x2, z2){
 }
                      
 //find out which map sector object is in
-function retrieveMapSector(object){
+function retrieveMapSector(objPosition){
     //
     var x = //Math.floor(object.x / unitSize);
-            Math.floor((object.x + unitSize / 2) / unitSize + mapWidth / 2);
+            Math.floor((objPosition.x + unitSize / 2) / unitSize + mapWidth / 2);
     var z = //Math.floor(object.x / unitSize);
-            Math.floor((object.z + unitSize / 2) / unitSize + mapWidth / 2);
+            Math.floor((objPosition.z + unitSize / 2) / unitSize + mapWidth / 2);
     return {x: x, z: z};
 }
 
 //check if object has collided with a wall
-function checkWallCollision(object){
+function checkWallCollision(objPosition){
     //get the map sector the object is in
-    var objSec = retrieveMapSector(object);
+    var objSec = retrieveMapSector(objPosition);
     //return true if there is a wall there on map (>0) 
     // or bullet position is undefined, otherwise false
-    //Still not working -----------------------------??
-    if(map[objSec.x][objSec.z] > 0 || objSec.x === undefined || map[objSec.x][objSec.z] === undefined || object === undefined){
+    //console.log("Object sector x: " + objSec.x + "\n Object sector z: " + objSec.z);
+    if(objSec.x === undefined){
+        console.log("The objSec.x treated in checkWallCollision is undefined");
+    }
+    if(map[objSec.x]===undefined){
+        console.log("The objSec.x treated in checkWallCollision is undefined. Bullet will be spliced === True");
+        return true;
+    }
+    if(map[objSec.x][objSec.z] > 0 || objSec.x === undefined || map[objSec.x][objSec.z] === undefined || objPosition.x === undefined || objPosition.z === undefined){
+        console.log("Wall collision for object position x: " + objPosition.x + " z: " + objPosition.z + " detected");
         return true;
     }
     else return false;
@@ -295,6 +305,8 @@ function addBullet(object){ //the object is the one shooting
     }
     //create the new bullet
     var newBullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
+    //add name tag
+    newBullet.objType = "bullet";
     //set new bullets position to position of shooter
     newBullet.position.set(object.position.x, object.position.y * 0.8,
                         object.position.z);
@@ -308,7 +320,7 @@ function addBullet(object){ //the object is the one shooting
         newBullet.ray = new THREE.Ray(
             object.position,
             vector.subSelf(object.position).normalize()); //---------?
-        console.log("Player fired a bullet");
+        console.log("Player fired a " + newBullet.objType);
     }
     
     else {
@@ -333,9 +345,15 @@ function onDocumentMouseMove(e){
     //make 0,0 coord in lower right corner
     mouse.x = (e.clientX / width) * 2 - 1;
     mouse.y = - (e.clientY / height) * 2 + 1;
-    var dateNow1 = new Date();
-    lastMouseMoveTime = dateNow1.getTime();
-    currentLookSpeed = defaultLookSpeed;
+    
+    //look speed freeze
+    if(!paused){
+        var dateNow1 = new Date();
+        lastMouseMoveTime = dateNow1.getTime();
+        currentLookSpeed = defaultLookSpeed;
+        controls.lookSpeed = currentLookSpeed;
+        console.log("controls.lookSpeed set to defaultLookSpeed");
+    }
 }
 
 
@@ -347,7 +365,7 @@ function keyDown(e){
     if(e.keyCode == 32){
         if(animationRun){
         animationRun = false;
-        paused = true; //---------declare global!
+        paused = true;
         console.log("Space was pressed, game is paused");
         }
         else if(animationRun == false && paused == true){
