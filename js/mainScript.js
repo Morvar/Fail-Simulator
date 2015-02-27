@@ -33,12 +33,85 @@ var floorColor = {color: 0x164016},
     wall1Color = {color: 0x333300},
     fogColor = 0x00AAFF;
 //_________________________________________________
+    
+var blocker = document.getElementById('blocker');
+var intro = document.getElementById('intro');
 
+//confirm pointerlock in document
+var pointerLockFound = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
+
+if(pointerLockFound){
+    var bodyElement = document.body;
+    
+    var pointerLockChange = function(event){
+        if(document.pointerLockElement === bodyElement || document.mozPointerLockElement === bodyElement || document.webkitPointerLockElement === bodyElement){
+            controlsEnabled = true;
+            controls.enabled = true;
+            blocker.style.display = 'none';
+        }
+    
+        else{
+        controls.enabled = false;
+        blocker.style.display = '-webkit-box';
+        blocker.style.display = '-moz-box';
+        blocker.style.display = 'box';
+        instructions.style.display = '';
+        }
+    }
+    
+    var pointerLockError = function(event){
+        instructions.style.display = '';
+    }
+    //hook pointer lock state change events
+	document.addEventListener('pointerlockchange', pointerlockchange, false);
+	document.addEventListener('mozpointerlockchange', pointerlockchange, false);
+	document.addEventListener('webkitpointerlockchange', pointerlockchange, false);
+
+    document.addEventListener('pointerlockerror', pointerlockerror, false);
+    document.addEventListener('mozpointerlockerror', pointerlockerror, false);
+    document.addEventListener('webkitpointerlockerror', pointerlockerror, false);
+    
+    instructions.addEventListener('click', function(event){
+        instructions.style.display = 'none';
+        //pointer locking request fow users browser
+        bodyElement.requestPointerLock = bodyElement.requestPointerLock || bodyElement.mozRequestPointerLock || bodyElement.webkitRequestPointerLock;
+
+        if(/Firefox/i.test(navigator.userAgent)){
+            var fullscreenchange = function(event){
+            if(document.fullscreenElement === bodyElement || document.mozFullscreenElement === bodyElement || document.mozFullScreenElement === bodyElement){
+                document.removeEventListener( 'fullscreenchange', fullscreenchange );
+                document.removeEventListener( 'mozfullscreenchange', fullscreenchange );
+                bodyElement.requestPointerLock();
+            }
+
+        }
+
+        document.addEventListener('fullscreenchange', fullscreenchange, false);
+        document.addEventListener('mozfullscreenchange', fullscreenchange, false);
+
+        bodyElement.requestFullscreen = bodyElement.requestFullscreen || bodyElement.mozRequestFullscreen || bodyElement.mozRequestFullScreen || bodyElement.webkitRequestFullscreen;
+
+        bodyElement.requestFullscreen();
+}
+else{
+    bodyElement.requestPointerLock();
+    }
+
+				}, false );
+
+			} else {
+
+				instructions.innerHTML = 'Your browser doesn\'t seem to support Pointer Lock API';
+
+			}
+    
+    
+//_______________________________________________________
 //initialize, run when document is ready
 //$(selector).action()
 $(document).ready(function(){
     //add a start game click text
-	$('body').append('<div id="startGame">Click to start game</div>');
+	$('body').append('<div id="startGame">Click to start game</div>');s
     //on element with id startGame add css properties width,height
     //attach event handler event type 'click'
     //when 'click', execute the function(e)
