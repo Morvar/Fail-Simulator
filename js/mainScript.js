@@ -1,117 +1,18 @@
-
 //Global variables
-var moveSpeed = 500,
-    bulletMoveSpeed = moveSpeed * 15;
-    defaultLookSpeed = 0.8, currentLookSpeed = defaultLookSpeed, unitSize = 400, 
-    wallHeight = unitSize,
-    mouse = {x: 0, y: 0};
-var width = window.innerWidth, 
-    height = window.innerHeight, 
-    aspect = width/height;
-var scene, camera, controls, renderer, clock, projector, animationRun = false, paused = false, hp = 100, bulletDamage = 10, lastMouseMoveTime;
+var moveSpeed, bulletMoveSpeed, defaultLookSpeed, currentLookSpeed, unitSize, wallHeight, mouse, width, height, aspect, scene, camera, controls, renderer, clock, projector, animationRun, paused, hp, bulletDamage, lastMouseMoveTime, bullets, map, mapWidth, mapHeight;
 
-var bullets = [];
-
-var map =[//0  1  2  3  4  5  6  7  8  9
-           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 1
-           [1, 0, 0, 0, 1, 0, 0, 0, 0, 1], // 2
-           [1, 0, 1, 0, 0, 0, 0, 0, 0, 1], // 3
-           [1, 0, 0, 0, 1, 0, 0, 0, 0, 1], // 4
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 5
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 6
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 7
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 8
-           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 9
-           ], 
-            mapWidth = map[0].length, mapHeight = map.length;
-    
-//Map colors:
-var floorColor = {color: 0x164016},
-    skyColor = '#85D6FF',
-    bulletColor = {color: 0xCC99FF},
-    wall1Color = {color: 0x333300},
-    fogColor = 0x00AAFF;
+var floorColor, skyColor, bulletColor, wall1Color, fogColor;
 //_________________________________________________
-    
-var blocker = document.getElementById('blocker');
-var intro = document.getElementById('intro');
-
-//confirm pointerlock in document
-var pointerLockFound = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
-
-if(pointerLockFound){
-    var bodyElement = document.body;
-    
-    var pointerLockChange = function(event){
-        if(document.pointerLockElement === bodyElement || document.mozPointerLockElement === bodyElement || document.webkitPointerLockElement === bodyElement){
-            controlsEnabled = true;
-            controls.enabled = true;
-            blocker.style.display = 'none';
-        }
-    
-        else{
-        controls.enabled = false;
-        blocker.style.display = '-webkit-box';
-        blocker.style.display = '-moz-box';
-        blocker.style.display = 'box';
-        instructions.style.display = '';
-        }
-    }
-    
-    var pointerLockError = function(event){
-        instructions.style.display = '';
-    }
-    //hook pointer lock state change events
-	document.addEventListener('pointerlockchange', pointerlockchange, false);
-	document.addEventListener('mozpointerlockchange', pointerlockchange, false);
-	document.addEventListener('webkitpointerlockchange', pointerlockchange, false);
-
-    document.addEventListener('pointerlockerror', pointerlockerror, false);
-    document.addEventListener('mozpointerlockerror', pointerlockerror, false);
-    document.addEventListener('webkitpointerlockerror', pointerlockerror, false);
-    
-    instructions.addEventListener('click', function(event){
-        instructions.style.display = 'none';
-        //pointer locking request fow users browser
-        bodyElement.requestPointerLock = bodyElement.requestPointerLock || bodyElement.mozRequestPointerLock || bodyElement.webkitRequestPointerLock;
-
-        if(/Firefox/i.test(navigator.userAgent)){
-            var fullscreenchange = function(event){
-            if(document.fullscreenElement === bodyElement || document.mozFullscreenElement === bodyElement || document.mozFullScreenElement === bodyElement){
-                document.removeEventListener( 'fullscreenchange', fullscreenchange );
-                document.removeEventListener( 'mozfullscreenchange', fullscreenchange );
-                bodyElement.requestPointerLock();
-            }
-
-        }
-
-        document.addEventListener('fullscreenchange', fullscreenchange, false);
-        document.addEventListener('mozfullscreenchange', fullscreenchange, false);
-
-        bodyElement.requestFullscreen = bodyElement.requestFullscreen || bodyElement.mozRequestFullscreen || bodyElement.mozRequestFullScreen || bodyElement.webkitRequestFullscreen;
-
-        bodyElement.requestFullscreen();
-}
-else{
-    bodyElement.requestPointerLock();
-    }
-
-				}, false );
-
-			} else {
-
-				instructions.innerHTML = 'Your browser doesn\'t seem to support Pointer Lock API';
-
-			}
-    
-    
-//_______________________________________________________
+var controlsEnabled, moveForward, moveBackward, moveLeft, moveRight;
+//___________
+var blocker, startscreen;
+/*
+//_________________________________________________
 //initialize, run when document is ready
 //$(selector).action()
 $(document).ready(function(){
     //add a start game click text
-	$('body').append('<div id="startGame">Click to start game</div>');s
+	$('body').append('<div id="startGame">Click to start game</div>');
     //on element with id startGame add css properties width,height
     //attach event handler event type 'click'
     //when 'click', execute the function(e)
@@ -131,9 +32,128 @@ $(document).ready(function(){
         init();
         animate();
     });*/
-});
+//}); */
+function startGame(){
+    
+//Global variables
+    var moveSpeed = 500,
+    bulletMoveSpeed = moveSpeed * 15,
+    defaultLookSpeed = 0.8, currentLookSpeed = defaultLookSpeed, unitSize = 400, 
+    wallHeight = unitSize,
+    mouse = {x: 0, y: 0},
+    width = window.innerWidth, 
+    height = window.innerHeight, 
+    aspect = width/height,
+    scene, camera, controls, renderer, clock, projector, animationRun = false, paused = false, hp = 100, bulletDamage = 10, lastMouseMoveTime,
 
-//_________________________________________________
+    bullets = [],
+
+    map =  [//0  1  2  3  4  5  6  7  8  9
+           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 1
+           [1, 0, 0, 0, 1, 0, 0, 0, 0, 1], // 2
+           [1, 0, 1, 0, 0, 0, 0, 0, 0, 1], // 3
+           [1, 0, 0, 0, 1, 0, 0, 0, 0, 1], // 4
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 5
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 6
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 7
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 8
+           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 9
+           ], 
+            mapWidth = map[0].length, mapHeight = map.length,
+    
+//Map colors:
+    floorColor = {color: 0x164016},
+    skyColor = '#85D6FF',
+    bulletColor = {color: 0xCC99FF},
+    wall1Color = {color: 0x333300},
+    fogColor = 0x00AAFF,
+    //_________________________________________________
+    controlsEnabled = false,
+    moveForward = false,
+    moveBackward = false,
+    moveLeft = false,
+    moveRight = false,
+    //___________
+    
+    blocker = document.getElementById('blocker'),
+    startscreen = document.getElementById('startscreen');
+
+    //confirm pointerlock in document
+    var pointerLockFound = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
+
+    if(pointerLockFound){
+        var bodyElement = document.body;
+
+        var pointerLockChange = function(event){
+            if(document.pointerLockElement === bodyElement || document.mozPointerLockElement === bodyElement || document.webkitPointerLockElement === bodyElement){
+                controlsEnabled = true;
+                controls.enabled = true;
+                blocker.style.display = 'none';
+            }
+
+            else{
+            controls.enabled = false;
+            blocker.style.display = '-webkit-box';
+            blocker.style.display = '-moz-box';
+            blocker.style.display = 'box';
+            startscreen.style.display = '';
+            }
+        }
+
+        var pointerLockError = function(event){
+            startscreen.style.display = '';
+        }
+
+        //hook pointer lock state change events
+        document.addEventListener('pointerlockchange', pointerLockChange, false);
+        document.addEventListener('mozpointerlockchange', pointerLockChange, false);
+        document.addEventListener('webkitpointerlockchange', pointerLockChange, false);
+
+        document.addEventListener('pointerlockerror', pointerLockError, false);
+        document.addEventListener('mozpointerlockerror', pointerLockError, false);
+        document.addEventListener('webkitpointerlockerror', pointerLockError, false);
+
+        startscreen.addEventListener('click', function(event){
+            startscreen.style.display = 'none';
+
+            //pointer locking request for users browser
+            bodyElement.requestPointerLock = bodyElement.requestPointerLock || bodyElement.mozRequestPointerLock || bodyElement.webkitRequestPointerLock;
+
+            if(/Firefox/i.test(navigator.userAgent)){
+                var fullscreenchange = function(event){
+                    if(document.fullscreenElement === bodyElement || document.mozFullscreenElement === bodyElement || document.mozFullScreenElement === bodyElement){
+                        document.removeEventListener( 'fullscreenchange', fullscreenchange );
+                        document.removeEventListener( 'mozfullscreenchange', fullscreenchange );
+                        bodyElement.requestPointerLock();
+                    }
+
+                }
+                document.addEventListener('fullscreenchange', fullscreenchange, false);
+                document.addEventListener('mozfullscreenchange', fullscreenchange, false);
+
+                bodyElement.requestFullscreen = bodyElement.requestFullscreen || bodyElement.mozRequestFullscreen || bodyElement.mozRequestFullScreen || bodyElement.webkitRequestFullscreen;
+                bodyElement.requestFullscreen();
+            }
+
+        else{
+            bodyElement.requestPointerLock();
+        }
+    }
+    , false);}
+
+
+    else {
+        startscreen.innerHTML = 'your browser doesn\'t support the Pointer Lock API';
+    }
+    
+    //prevent the default action that takes browser to new url
+    init();
+    animationRun = true;
+    animate();
+    
+    
+//_______________________________________________________
 
 function init(){
     
@@ -152,7 +172,7 @@ function init(){
     camera.position.x = mapWidth/2; //-----?
     camera.position.z = mapHeight/2;
     scene.add(camera);
-
+/*
     //FirstPersonControls: move camera with mouse, player using WASD/arrow keys
     //takes the camera object as argument
 	controls = new THREE.FirstPersonControls(camera);
@@ -160,7 +180,70 @@ function init(){
     controls.lookVertical = false; //player can't look up/down (prevents flying)
 	controls.movementSpeed = moveSpeed; //player move around speed
 	controls.noFly = true; //no using R/F keys for moving up/down
-    
+*/
+    controls = new THREE.PointerLockControls(camera);
+    scene.add(controls.getObject());
+
+    var onKeyDown = function(e){
+
+        switch(e.keyCode){
+
+            case 38: // up
+            case 87: // w
+                moveForward = true;
+                break;
+
+            case 37: // left
+            case 65: // a
+                moveLeft = true; break;
+
+            case 40: // down
+            case 83: // s
+                moveBackward = true;
+                break;
+
+            case 39: // right
+            case 68: // d
+                moveRight = true;
+                break;
+
+            case 32: // space
+                if ( canJump === true ) velocity.y += 350;
+                canJump = false;
+                break;
+        }
+    };
+
+    var onKeyUp = function(e){
+
+        switch(e.keyCode){
+
+            case 38: // up
+            case 87: // w
+                moveForward = false;
+                break;
+
+            case 37: // left
+            case 65: // a
+                moveLeft = false;
+                break;
+
+            case 40: // down
+            case 83: // s
+                moveBackward = false;
+                break;
+
+            case 39: // right
+            case 68: // d
+                moveRight = false;
+                break;
+        }
+    };
+
+    document.addEventListener('keydown', onKeyDown, false);
+    document.addEventListener('keyup', onKeyUp, false);
+//____________________
+        
     sceneSetup(); //call function to set up the environment
     
     //create renderer. set render size to browser window size
@@ -476,3 +559,4 @@ $(window).focus(function(){
 $(window).blur(function(){
     if(controls){controls.freeze = true;}
 });
+}

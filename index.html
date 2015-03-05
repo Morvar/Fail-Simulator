@@ -4,7 +4,7 @@
         <title>I like potato</title>
     </head>
     
-    <body onkeydown="keyDown(event)">
+    <body onkeydown="keyDown(event)" onload="startGame()">
         <script src="js/jquery-1.11.2.min.js"></script>
         <script src="js/Three.js"></script>
         <script src="js/Three.FirstPersonControls.js"></script>
@@ -13,9 +13,9 @@
         
         <div id="blocker">
             <div id="startscreen">
-                <span id="intro">Title</span>
+                <span>Title</span>
                 <br/>
-                (instructions)
+                instructions
             </div>
         </div>
     </body>
