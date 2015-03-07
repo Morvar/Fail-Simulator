@@ -1,4 +1,5 @@
 //Global variables
+/*
 var moveSpeed, bulletMoveSpeed, defaultLookSpeed, currentLookSpeed, unitSize, wallHeight, mouse, width, height, aspect, scene, camera, controls, renderer, clock, projector, animationRun, paused, hp, bulletDamage, lastMouseMoveTime, bullets, map, mapWidth, mapHeight;
 
 var floorColor, skyColor, bulletColor, wall1Color, fogColor;
@@ -6,7 +7,7 @@ var floorColor, skyColor, bulletColor, wall1Color, fogColor;
 var controlsEnabled, moveForward, moveBackward, moveLeft, moveRight;
 //___________
 var blocker, startscreen;
-/*
+
 //_________________________________________________
 //initialize, run when document is ready
 //$(selector).action()
@@ -47,6 +48,7 @@ function startGame(){
     scene, camera, controls, renderer, clock, projector, animationRun = false, paused = false, hp = 100, bulletDamage = 10, lastMouseMoveTime,
 
     bullets = [],
+    mapObjects = [],
 
     map =  [//0  1  2  3  4  5  6  7  8  9
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
@@ -74,6 +76,9 @@ function startGame(){
     moveBackward = false,
     moveLeft = false,
     moveRight = false,
+        
+    prevTime = performance.now(),
+	velocity = new THREE.Vector3(),
     //___________
     
     blocker = document.getElementById('blocker'),
@@ -184,64 +189,12 @@ function init(){
     controls = new THREE.PointerLockControls(camera);
     scene.add(controls.getObject());
 
-    var onKeyDown = function(e){
-
-        switch(e.keyCode){
-
-            case 38: // up
-            case 87: // w
-                moveForward = true;
-                break;
-
-            case 37: // left
-            case 65: // a
-                moveLeft = true; break;
-
-            case 40: // down
-            case 83: // s
-                moveBackward = true;
-                break;
-
-            case 39: // right
-            case 68: // d
-                moveRight = true;
-                break;
-
-            case 32: // space
-                if ( canJump === true ) velocity.y += 350;
-                canJump = false;
-                break;
-        }
-    };
-
-    var onKeyUp = function(e){
-
-        switch(e.keyCode){
-
-            case 38: // up
-            case 87: // w
-                moveForward = false;
-                break;
-
-            case 37: // left
-            case 65: // a
-                moveLeft = false;
-                break;
-
-            case 40: // down
-            case 83: // s
-                moveBackward = false;
-                break;
-
-            case 39: // right
-            case 68: // d
-                moveRight = false;
-                break;
-        }
-    };
-
+    //onKeyDown
+        
     document.addEventListener('keydown', onKeyDown, false);
     document.addEventListener('keyup', onKeyUp, false);
+        
+    raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, - 1, 0 ), 0, 10 );
 //____________________
         
     sceneSetup(); //call function to set up the environment
@@ -249,6 +202,8 @@ function init(){
     //create renderer. set render size to browser window size
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(width, height);
+    renderer.setClearColor(0xffffff);
+    renderer.setPixelRatio(window.devicePixelRatio);
     
     //change background canvas color
     renderer.domElement.style.backgroundColor = skyColor;
@@ -287,14 +242,14 @@ function sceneSetup(){
     //Mesh(geometry, material)
     //MeshLambertMaterial(properties of the 'parameters' object)
     var floor = new THREE.Mesh(
-        new THREE.CubeGeometry(units * unitSize, 10, units * unitSize), 
+        new THREE.BoxGeometry(units * unitSize, 10, units * unitSize), 
         new THREE.MeshLambertMaterial(floorColor));
     //change floor coordinates
     //floor.position.x = units/2 * unitSize;
     //floor.position.z = units/2 * unitSize;
     scene.add(floor);
 
-    var cube = new THREE.CubeGeometry(unitSize, wallHeight, unitSize); 
+    var cube = new THREE.BoxGeometry(unitSize, wallHeight, unitSize); 
     var wallMaterial = new THREE.MeshLambertMaterial(wall1Color);
     
     //loop through map and place wallcubes
@@ -308,6 +263,7 @@ function sceneSetup(){
                 wallCube.position.y = wallHeight/2;
                 wallCube.position.z = (j - units/2) * unitSize;
                 scene.add(wallCube);
+                mapObjects.push(wallCube);
             }
         }
     }
@@ -343,10 +299,56 @@ function animate(){
 
 //the rendering function
 function render(){
-    
+    /*
     var delta = clock.getDelta(); //returns time since last time called
     var bulletSpeed = bulletMoveSpeed * delta;
     controls.update(delta); //moves camera
+    */
+        
+    if ( controlsEnabled ) {
+        raycaster.ray.origin.copy( controls.getObject().position );
+        raycaster.ray.origin.y -= 10;
+
+        var intersections = raycaster.intersectObjects( mapObjects );
+
+        var isOnObject = intersections.length > 0;
+
+        var time = performance.now();
+        var delta = ( time - prevTime ) / 1000;
+
+        velocity.x -= velocity.x * 10.0 * delta;
+        velocity.z -= velocity.z * 10.0 * delta;
+
+        velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
+
+        if ( moveForward ) velocity.z -= 400.0 * delta;
+        if ( moveBackward ) velocity.z += 400.0 * delta;
+
+        if ( moveLeft ) velocity.x -= 400.0 * delta;
+        if ( moveRight ) velocity.x += 400.0 * delta;
+
+        if ( isOnObject === true ) {
+            velocity.y = Math.max( 0, velocity.y );
+
+            canJump = true;
+        }
+
+        controls.getObject().translateX( velocity.x * delta );
+        controls.getObject().translateY( velocity.y * delta );
+        controls.getObject().translateZ( velocity.z * delta );
+
+        if ( controls.getObject().position.y < 10 ) {
+
+            velocity.y = 0;
+            controls.getObject().position.y = 10;
+
+            canJump = true;
+
+        }
+
+        prevTime = time;
+        
+    }
     
     //update the bullets array with for loop
     //start counting from the last element so old bullets can be removed
@@ -379,7 +381,7 @@ function render(){
             bullet.translateZ(bulletSpeed * dir.z); //move along z axis
         }
     }
-    
+    /*
     //Get current time
     var dateNow2 = new Date();
     var currentTime = dateNow2.getTime();
@@ -392,7 +394,7 @@ function render(){
     }
     //reset lastMouseMoveTime
     lastMouseMoveTime = 0;
-    
+    */
     
     //repaint everything
     renderer.render(scene, camera);
@@ -470,7 +472,7 @@ function addBullet(object){ //the object is the one shooting
     if (object instanceof THREE.Camera) {
         var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
         //translate vector from 2D to 3D
-        projector.unprojectVector(vector, object);
+        projector.unproject(vector, object);
         //create new bullet as a ray starting at shooter's position
         //(position of camera, direction to shoot)
         newBullet.ray = new THREE.Ray(
@@ -502,6 +504,7 @@ function onDocumentMouseMove(e){
     mouse.x = (e.clientX / width) * 2 - 1;
     mouse.y = - (e.clientY / height) * 2 + 1;
     
+    /*
     //look speed freeze
     if(!paused){
         var dateNow1 = new Date();
@@ -510,9 +513,10 @@ function onDocumentMouseMove(e){
         controls.lookSpeed = currentLookSpeed;
         console.log("controls.lookSpeed set to defaultLookSpeed");
     }
+    */
 }
 
-
+/*
 //handle key press (pause)
 function keyDown(e){
     //prevent scrolling
@@ -532,7 +536,62 @@ function keyDown(e){
         }
     }
 }
+*/
+function onKeyDown(e){
 
+    switch(e.keyCode){
+
+        case 38: // up
+        case 87: // w
+            moveForward = true;
+            break;
+
+        case 37: // left
+        case 65: // a
+            moveLeft = true; break;
+
+        case 40: // down
+        case 83: // s
+            moveBackward = true;
+            break;
+
+        case 39: // right
+        case 68: // d
+            moveRight = true;
+            break;
+
+        case 32: // space
+            if ( canJump === true ) velocity.y += 350;
+            canJump = false;
+            break;
+    }
+};
+
+var onKeyUp = function(e){
+
+    switch(e.keyCode){
+
+        case 38: // up
+        case 87: // w
+            moveForward = false;
+            break;
+
+        case 37: // left
+        case 65: // a
+            moveLeft = false;
+            break;
+
+        case 40: // down
+        case 83: // s
+            moveBackward = false;
+            break;
+
+        case 39: // right
+        case 68: // d
+            moveRight = false;
+            break;
+    }
+};
 
 //resize window
 $(window).resize(function(){
