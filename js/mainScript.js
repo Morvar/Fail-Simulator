@@ -41,6 +41,7 @@ function startGame(){
     bulletMoveSpeed = moveSpeed * 15,
     defaultLookSpeed = 0.8, currentLookSpeed = defaultLookSpeed, unitSize = 400, 
     wallHeight = unitSize,
+    floorHeight = 10,
     mouse = {x: 0, y: 0},
     width = window.innerWidth, 
     height = window.innerHeight, 
@@ -64,7 +65,7 @@ function startGame(){
            ], 
             mapWidth = map[0].length, mapHeight = map.length,
     
-//Map colors:
+    //Map colors:
     floorColor = {color: 0x164016},
     skyColor = '#85D6FF',
     bulletColor = {color: 0xCC99FF},
@@ -77,40 +78,45 @@ function startGame(){
     moveLeft = false,
     moveRight = false,
         
-    prevTime = performance.now(),
+    previousTime = performance.now(),
 	velocity = new THREE.Vector3(),
-    //___________
     
     blocker = document.getElementById('blocker'),
     startscreen = document.getElementById('startscreen');
 
-    //confirm pointerlock in document
+    //check if users browser supports pointerlock
     var pointerLockFound = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
-
+        
+    //if browser supports pointerlock
     if(pointerLockFound){
         var bodyElement = document.body;
-
         var pointerLockChange = function(event){
+            //check if pointer lock was enabled -
+            // - if document.pointerLockElement is equal to the element 
+            // that pointer lock was requested for
             if(document.pointerLockElement === bodyElement || document.mozPointerLockElement === bodyElement || document.webkitPointerLockElement === bodyElement){
+                //if pointerlock was enabled, enable controls
                 controlsEnabled = true;
                 controls.enabled = true;
                 blocker.style.display = 'none';
             }
-
+        
+            //if pointerlock was not enabled, disable controls
+            // and display the 'blocker' and 'startscreen'
             else{
-            controls.enabled = false;
-            blocker.style.display = '-webkit-box';
-            blocker.style.display = '-moz-box';
-            blocker.style.display = 'box';
-            startscreen.style.display = '';
+                controls.enabled = false;
+                blocker.style.display = '-webkit-box';
+                blocker.style.display = '-moz-box';
+                blocker.style.display = 'box';
+                startscreen.style.display = '';
             }
         }
-
+        //if pointerlock error occurs, display startscreen
         var pointerLockError = function(event){
             startscreen.style.display = '';
         }
 
-        //hook pointer lock state change events
+        //hook pointer lock to state change events
         document.addEventListener('pointerlockchange', pointerLockChange, false);
         document.addEventListener('mozpointerlockchange', pointerLockChange, false);
         document.addEventListener('webkitpointerlockchange', pointerLockChange, false);
@@ -122,7 +128,7 @@ function startGame(){
         startscreen.addEventListener('click', function(event){
             startscreen.style.display = 'none';
 
-            //pointer locking request for users browser
+            //pointer locking request for users browser (firefox, chrome, safari)
             bodyElement.requestPointerLock = bodyElement.requestPointerLock || bodyElement.mozRequestPointerLock || bodyElement.webkitRequestPointerLock;
 
             if(/Firefox/i.test(navigator.userAgent)){
@@ -132,7 +138,6 @@ function startGame(){
                         document.removeEventListener( 'mozfullscreenchange', fullscreenchange );
                         bodyElement.requestPointerLock();
                     }
-
                 }
                 document.addEventListener('fullscreenchange', fullscreenchange, false);
                 document.addEventListener('mozfullscreenchange', fullscreenchange, false);
@@ -152,7 +157,6 @@ function startGame(){
         startscreen.innerHTML = 'your browser doesn\'t support the Pointer Lock API';
     }
     
-    //prevent the default action that takes browser to new url
     init();
     animationRun = true;
     animate();
@@ -189,12 +193,11 @@ function init(){
     controls = new THREE.PointerLockControls(camera);
     scene.add(controls.getObject());
 
-    //onKeyDown
-        
+    //onKeyDown & Up
     document.addEventListener('keydown', onKeyDown, false);
     document.addEventListener('keyup', onKeyUp, false);
         
-    raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, - 1, 0 ), 0, 10 );
+    raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, - 1, 0), 0, 10);
 //____________________
         
     sceneSetup(); //call function to set up the environment
@@ -242,7 +245,7 @@ function sceneSetup(){
     //Mesh(geometry, material)
     //MeshLambertMaterial(properties of the 'parameters' object)
     var floor = new THREE.Mesh(
-        new THREE.BoxGeometry(units * unitSize, 10, units * unitSize), 
+        new THREE.BoxGeometry(units * unitSize, floorHeight, units * unitSize), 
         new THREE.MeshLambertMaterial(floorColor));
     //change floor coordinates
     //floor.position.x = units/2 * unitSize;
@@ -305,49 +308,52 @@ function render(){
     controls.update(delta); //moves camera
     */
         
-    if ( controlsEnabled ) {
-        raycaster.ray.origin.copy( controls.getObject().position );
-        raycaster.ray.origin.y -= 10;
-
-        var intersections = raycaster.intersectObjects( mapObjects );
-
+    if(controlsEnabled){
+        raycaster.ray.origin.copy(controls.getObject().position);
+        raycaster.ray.origin.y -= 10; //floorHeight-------??
+        
+        //returns array of intersections
+        var intersections = raycaster.intersectObjects(mapObjects);
+        //if intersections were found, set isOnObject to true
         var isOnObject = intersections.length > 0;
 
         var time = performance.now();
-        var delta = ( time - prevTime ) / 1000;
-
-        velocity.x -= velocity.x * 10.0 * delta;
-        velocity.z -= velocity.z * 10.0 * delta;
-
-        velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
-
-        if ( moveForward ) velocity.z -= 400.0 * delta;
-        if ( moveBackward ) velocity.z += 400.0 * delta;
-
-        if ( moveLeft ) velocity.x -= 400.0 * delta;
-        if ( moveRight ) velocity.x += 400.0 * delta;
-
-        if ( isOnObject === true ) {
-            velocity.y = Math.max( 0, velocity.y );
-
-            canJump = true;
-        }
-
-        controls.getObject().translateX( velocity.x * delta );
-        controls.getObject().translateY( velocity.y * delta );
-        controls.getObject().translateZ( velocity.z * delta );
-
-        if ( controls.getObject().position.y < 10 ) {
-
-            velocity.y = 0;
-            controls.getObject().position.y = 10;
-
-            canJump = true;
-
-        }
-
-        prevTime = time;
+        //get the time difference in seconds
+        var delta = (time - previousTime)/1000;
         
+        var bulletSpeed = bulletMoveSpeed * delta;
+
+        velocity.x -= velocity.x * 10.0 * delta; //--------------?
+        velocity.z -= velocity.z * 10.0 * delta;
+        
+        //9.82 is gravity, 100.0 is players mass
+        velocity.y -= 9.82 * 100.0 * delta;
+        
+        //move along x and z axis
+        if(moveForward) velocity.z -= 400.0 * delta;
+        if(moveBackward) velocity.z += 400.0 * delta;
+
+        if(moveLeft) velocity.x -= 400.0 * delta;
+        if(moveRight) velocity.x += 400.0 * delta;
+        
+        //make player landing on object possible
+        if(isOnObject){
+            velocity.y = Math.max(0, velocity.y);
+            canJump = true;
+        }
+        
+        //move player
+        controls.getObject().translateX(velocity.x * delta);
+        controls.getObject().translateY(velocity.y * delta);
+        controls.getObject().translateZ(velocity.z * delta);
+
+        //keep player from moving down through the floor
+        if(controls.getObject().position.y < floorHeight){
+            velocity.y = 0;
+            controls.getObject().position.y = floorHeight;
+            canJump = true;
+        }
+        previousTime = time;
     }
     
     //update the bullets array with for loop
@@ -406,6 +412,11 @@ function render(){
         $(renderer.domElement).fadeOut(); //fade out renderer
         $('#hud').fadeOut(); //fade out HUD
         $('#startGame').fadeIn();
+        /*
+        //ask browser to disable pointerlock
+        document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
+        document.exitPointerLock();
+        */
         $('#startGame').html('Return to Main Menu'); //change html text
         //attach event handler event type 'click'
         //when 'click', execute the function()
@@ -472,12 +483,12 @@ function addBullet(object){ //the object is the one shooting
     if (object instanceof THREE.Camera) {
         var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
         //translate vector from 2D to 3D
-        projector.unproject(vector, object);
+        vector.unproject(object);
         //create new bullet as a ray starting at shooter's position
         //(position of camera, direction to shoot)
         newBullet.ray = new THREE.Ray(
             object.position,
-            vector.subSelf(object.position).normalize()); //---------?
+            vector.sub(object.position).normalize()); //---------?
         console.log("Player fired a " + newBullet.objType);
     }
     
