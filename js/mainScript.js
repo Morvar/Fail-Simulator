@@ -1,14 +1,15 @@
 function startGame(){
 
     //Global variables
-        var moveSpeed = 500,
-            jumpSpeed = 500,
+        var jumpSpeed = 500,
+            moveSpeed = 0.0,
             bulletMoveSpeed = moveSpeed * 15,
-            defaultLookSpeed = 0.8, 
-            currentLookSpeed = defaultLookSpeed, 
             hp = 100, 
             bulletDamage = 10,
-            unitSize = 400, 
+            mapGravity = 9.82,
+            playerMass = 100.0,
+            bulletMass = 3.0,
+            unitSize = 100, 
             wallHeight = unitSize,
             floorHeight = 10,
             mouse = {x: 0, y: 0},
@@ -51,7 +52,7 @@ function startGame(){
             moveRight = false,
 
             previousTime = performance.now(),
-            playerVelocity = new THREE.Vector3(),
+            playerVector = new THREE.Vector3(),
 
             blocker = document.getElementById('blocker'),
             startscreen = document.getElementById('startscreen');
@@ -276,35 +277,34 @@ function startGame(){
             //get the time difference in seconds
             var delta = (time - previousTime)/1000;
 
-            var bulletSpeed = bulletMoveSpeed * delta;
+            //prevent player from accelerating out of map
+            playerVector.x -= playerVector.x * 10.0 * delta;
+            playerVector.z -= playerVector.z * 10.0 * delta;
 
-            playerVelocity.x -= playerVelocity.x * 10.0 * delta; //--------------?
-            playerVelocity.z -= playerVelocity.z * 10.0 * delta;
-
-            //9.82 is gravity, 100.0 is players mass
-            playerVelocity.y -= 9.82 * 100.0 * delta;
+            //100.0 is players mass
+            playerVector.y -= mapGravity * playerMass * delta;
 
             //move along x and z axis
-            if(moveForward) playerVelocity.z -= 400.0 * delta;
-            if(moveBackward) playerVelocity.z += 400.0 * delta;
+            if(moveForward) playerVector.z -= 400.0 * delta;
+            if(moveBackward) playerVector.z += 400.0 * delta;
 
-            if(moveLeft) playerVelocity.x -= 400.0 * delta;
-            if(moveRight) playerVelocity.x += 400.0 * delta;
+            if(moveLeft) playerVector.x -= 400.0 * delta;
+            if(moveRight) playerVector.x += 400.0 * delta;
 
             //make player landing on object possible
             if(isOnObject){
-                playerVelocity.y = Math.max(0, playerVelocity.y);
+                playerVector.y = Math.max(0, playerVector.y);
                 canJump = true;
             }
 
             //move player
-            controls.getObject().translateX(playerVelocity.x * delta);
-            controls.getObject().translateY(playerVelocity.y * delta);
-            controls.getObject().translateZ(playerVelocity.z * delta);
+            controls.getObject().translateX(playerVector.x * delta);
+            controls.getObject().translateY(playerVector.y * delta);
+            controls.getObject().translateZ(playerVector.z * delta);
 
             //keep player from moving down through the floor
             if(controls.getObject().position.y < floorHeight){
-                playerVelocity.y = 0;
+                playerVector.y = 0;
                 controls.getObject().position.y = floorHeight;
                 canJump = true;
             }
@@ -335,12 +335,15 @@ function startGame(){
                 scene.remove(bullet); //remove the bullet from scene
                 hit = true; //(will this be needed?)
             }
-
-            //if bullet hasn't collided, continue moving
+            
+            var bulletVelocity = bulletMoveSpeed * delta;
+            
+            //if bullet hasn't collided, move bullet
             if (!hit){
-                bullet.translateX(bulletSpeed * dir.x); //move along x axis
-                bullet.translateZ(bulletSpeed * dir.z); //move along z axis
-                bullet.translateY(bulletSpeed * dir.y); //move along y axis
+                bullet.translateX(bulletVelocity * dir.x); //move along x axis
+                bullet.translateZ(bulletVelocity * dir.z); //move along z axis
+                bullet.translateY(bulletVelocity * dir.y); //move along y axis
+                console.log("dir x: " + bullet.ray.direction.x + "dir y: " + bullet.ray.direction.y + "dir z: " + bullet.ray.direction.z);
             }
         }
 
@@ -396,10 +399,10 @@ function startGame(){
             newBullet.ray = new THREE.Ray(
                 object.position,
                 vector.sub(object.position).normalize()); //---------?
-            console.log("Player fired a " + newBullet.objType);
 
         newBullet.objType = "bullet"; //give the bullet a name tag
         newBullet.owner = object; //give the bullet an owner property (who fired it)
+        console.log("Player fired a " + newBullet.objType);
         bullets.push(newBullet); //add the new bullet to bullets array
         scene.add(newBullet); //add the new bullet to scene
     }
@@ -431,7 +434,7 @@ function startGame(){
                 break;
 
             case 32: //space
-                if(canJump) playerVelocity.y += jumpSpeed;
+                if(canJump) playerVector.y += jumpSpeed;
                 canJump = false;
                 break;
         }
@@ -537,7 +540,7 @@ function startGame(){
             return true;
         }
         if(map[objSec.x][objSec.z] > 0 || objSec.x === undefined || map[objSec.x][objSec.z] === undefined || objPosition.x === undefined || objPosition.z === undefined){
-            console.log("Wall collision for object position x: " + objPosition.x + " z: " + objPosition.z + " detected");
+            console.log("Wall collision for object position x: " + objPosition.x + " z: " + objPosition.z + "y: " + objPosition.y + " detected");
             return true;
         }
         else return false;
