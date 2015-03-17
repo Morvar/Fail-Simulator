@@ -2,8 +2,8 @@ function startGame(){
 
     //Global variables
         var jumpSpeed = 500,
-            moveSpeed = 0.0,
-            bulletMoveSpeed = moveSpeed * 15,
+            playerMoveSpeed = 400.0,
+            bulletMoveSpeed = playerMoveSpeed * 3.0,
             hp = 100, 
             bulletDamage = 10,
             mapGravity = 9.82,
@@ -281,15 +281,15 @@ function startGame(){
             playerVector.x -= playerVector.x * 10.0 * delta;
             playerVector.z -= playerVector.z * 10.0 * delta;
 
-            //100.0 is players mass
+            //player is affected by gravity
             playerVector.y -= mapGravity * playerMass * delta;
 
-            //move along x and z axis
-            if(moveForward) playerVector.z -= 400.0 * delta;
-            if(moveBackward) playerVector.z += 400.0 * delta;
+            //move player along x and z axis
+            if(moveForward) playerVector.z -= playerMoveSpeed * delta;
+            if(moveBackward) playerVector.z += playerMoveSpeed * delta;
 
-            if(moveLeft) playerVector.x -= 400.0 * delta;
-            if(moveRight) playerVector.x += 400.0 * delta;
+            if(moveLeft) playerVector.x -= playerMoveSpeed * delta;
+            if(moveRight) playerVector.x += playerMoveSpeed * delta;
 
             //make player landing on object possible
             if(isOnObject){
