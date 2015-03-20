@@ -9,8 +9,8 @@ function startGame(){
             mapGravity = 9.82,
             playerMass = 100.0,
             bulletMass = 3.0,
-            unitSize = 100, 
-            wallHeight = unitSize,
+            unitSize = 20, 
+            wallHeight = unitSize * 2.0,
             floorHeight = 10,
             mouse = {x: 0, y: 0},
             width = window.innerWidth, 
@@ -23,18 +23,18 @@ function startGame(){
             bullets = [],
             mapObjects = [],
 
-            map =  [//0  1  2  3  4  5  6  7  8  9
-                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
-                   [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 1
-                   [1, 0, 0, 0, 1, 0, 0, 0, 0, 1], // 2
-                   [1, 0, 1, 0, 0, 0, 0, 0, 0, 1], // 3
-                   [1, 0, 0, 0, 1, 0, 0, 0, 0, 1], // 4
-                   [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 5
-                   [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 6
-                   [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 7
-                   [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 8
-                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 9
-                   ], 
+            map =  [//0 1  2  3  4  5  6  7  8  9  10  11  12  13  14  15  16  17
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 1
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 2
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 3
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 4
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 5
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 6
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 7
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 8
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 9
+                    ], 
             mapWidth = map[0].length, 
             mapHeight = map.length,
 
@@ -55,7 +55,9 @@ function startGame(){
             playerVector = new THREE.Vector3(),
 
             blocker = document.getElementById('blocker'),
-            startscreen = document.getElementById('startscreen');
+            startscreen = document.getElementById('startscreen'),
+            gameoverscreen = document.getElementById('gameoverscreen');
+            gameoverscreen.style.display = 'none';
         //_________________________________________________
             
         //check if users browser supports pointerlock
@@ -98,7 +100,13 @@ function startGame(){
             document.addEventListener('pointerlockerror', pointerLockError, false);
             document.addEventListener('mozpointerlockerror', pointerLockError, false);
             document.addEventListener('webkitpointerlockerror', pointerLockError, false);
-
+            
+            gameoverscreen.addEventListener('click', function(event){
+                location.reload();
+                });
+            
+            
+            //When user clicks on the startscreen, ask browser to enable pointerlock
             startscreen.addEventListener('click', function(event){
                 startscreen.style.display = 'none';
 
@@ -126,7 +134,7 @@ function startGame(){
         }
         , false);}
 
-        else {
+        else{
             startscreen.innerHTML = 'your browser doesn\'t support the Pointer Lock API';
         }
 
@@ -396,7 +404,7 @@ function startGame(){
 
             //bullet collides with player
             //check owner - player (camera) can't get hit by own bullet
-            if(dist(pos.x, pos.z, controls.getObject().position.x, controls.getObject().position.z) < 50 && bullet.owner != controls){
+            if(dist(pos.x, pos.y, pos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) < 50 && bullet.owner != controls){
                 hp -= bulletDamage; //lose hp
                 if (hp < 0){ hp = 0;} //set hp to 0 if below 0
                 bullets.splice(i, 1); //remove 1 bullet from bullets array
@@ -423,17 +431,26 @@ function startGame(){
             animationRun = false;
             $(renderer.domElement).fadeOut(); //fade out renderer
             //$('#hud').fadeOut(); //fade out HUD
-            $('#startGame').fadeIn();
-            /*
+            //$('#startGame').fadeIn();
+            blocker.style.display = '-webkit-box';
+            blocker.style.display = '-moz-box';
+            blocker.style.display = 'box';
+            startscreen.style.display = 'none';
+            gameoverscreen.style.display = '';
+            
             //ask browser to disable pointerlock
             document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
             document.exitPointerLock();
-            */
+            controlsEnabled = false;
+            controls.enabled = false;
+             
+            
+            /*
             $('#startGame').html('Return to Main Menu'); //change html text
             //attach event handler event type 'click'
             //when 'click', execute the function()
             //reload the page by setting url to same url
-            $('#startGame').one('click', function(){location = location;});
+            $('#startGame').one('click', function(){location = location;});*/
         }
     }
 
@@ -538,11 +555,17 @@ function startGame(){
             renderer.setSize(width, height);
         }
     }
-
+/*
     //calculate distance between objects //add z!!!!--------------------
     function dist(x1, z1, x2, z2){
         //pythagoras
         return Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((z2-z1), 2));
+    }
+*/
+    function dist(x1, y1, z1, x2, y2, z2){
+        //pythagoras
+        var diagonal2D = Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((z2-z1), 2));
+        return Math.sqrt(Math.pow((y2-y1), 2) + Math.pow(diagonal2D, 2));
     }
 
     //find out in which map sector an object is located
