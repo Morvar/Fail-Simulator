@@ -1,7 +1,7 @@
 function startGame(){
 
     //Global variables
-        var jumpSpeed = 500,
+        var jumpSpeed = 300,
             playerMoveSpeed = 400.0,
             bulletMoveSpeed = playerMoveSpeed * 3.0,
             hp = 100, 
@@ -10,7 +10,8 @@ function startGame(){
             playerMass = 100.0,
             bulletMass = 3.0,
             unitSize = 20, 
-            wallHeight = unitSize * 2.0,
+            wallHeight = unitSize * 1.5,
+            cameraHeight = 0.25,
             floorHeight = 10,
             mouse = {x: 0, y: 0},
             width = window.innerWidth, 
@@ -26,9 +27,9 @@ function startGame(){
             map =  [//0  1  2  3  4  5  6  7  8  9
                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 1
-                   [1, 0, 0, 0, 1, 0, 0, 0, 0, 1], // 2
+                   [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 2
                    [1, 0, 1, 0, 0, 0, 0, 0, 0, 1], // 3
-                   [1, 0, 0, 0, 1, 0, 0, 0, 0, 1], // 4
+                   [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 4
                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 5
                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 6
                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 7
@@ -149,13 +150,13 @@ function startGame(){
         //scene setup - creating the world. the scene holds the other objects
         scene = new THREE.Scene();
         //add fog to the scene
-        scene.fog = new THREE.FogExp2(fogColor, 0.001); //(color hex, density)
+        scene.fog = new THREE.FogExp2(fogColor, 0.01); //(color hex, density)
 
         //create perspective camera(FOV field of view [degrees], 
         //aspect ratio[width/height of element],near, far [clipping plane. 
         //no rendering nearer than near or beyond far. improves performance])
-        camera = new THREE.PerspectiveCamera(60, aspect, 1, 15000);
-        camera.position.y = unitSize * 0.5; //set camera height position
+        camera = new THREE.PerspectiveCamera(60, aspect, 1, 10000);
+        camera.position.y = unitSize * cameraHeight; //set camera height position
         camera.position.x = mapWidth/2;
         camera.position.z = mapHeight/2;
         scene.add(camera);
@@ -279,9 +280,9 @@ function startGame(){
         var direcLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
         var direcLight3 = new THREE.DirectionalLight(0x006666, 0.2);
         //set position of light source
-        direcLight1.position.set(0.5, 1, 0.5);
-        direcLight2.position.set(-0.5, 1, -0.5);
-        direcLight3.position.set(0, 400, 0);
+        direcLight1.position.set(mapWidth * unitSize/ 2, wallHeight * unitSize / 2, mapWidth * unitSize/ 2);
+        direcLight2.position.set(-mapWidth * unitSize/ 2, wallHeight * unitSize / 2, -mapWidth * unitSize / 2);
+        direcLight3.position.set(0, wallHeight * 2, 0);
         scene.add(direcLight1);
         scene.add(direcLight2);
         scene.add(direcLight3);
@@ -313,9 +314,9 @@ function startGame(){
                     var wallCube = new THREE.Mesh(cube, wallMaterial);
                     
                     //center map around 0,0 coords
-                    wallCube.position.x = (i - units/2) * unitSize;
+                    wallCube.position.x = (i - units/2) * unitSize + unitSize / 2;
                     wallCube.position.y = wallHeight/2;
-                    wallCube.position.z = (j - units/2) * unitSize;
+                    wallCube.position.z = (j - units/2) * unitSize + unitSize / 2;
                     scene.add(wallCube);
                     mapObjects.push(wallCube);
                 }
@@ -372,7 +373,12 @@ function startGame(){
                 playerVector.y = Math.max(0, playerVector.y);
                 canJump = true;
             }
-
+            
+            //check player wall collision
+            if(checkWallCollision(controls.getObject().position)){
+                console.log("Don't walk through walls..! :O");
+            }
+            
             //move player
             controls.getObject().translateX(playerVector.x * delta);
             controls.getObject().translateY(playerVector.y * delta);
