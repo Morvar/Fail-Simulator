@@ -1,12 +1,12 @@
 function startGame(){
 
     //Global variables
-        var jumpSpeed = 300,
+        var jumpSpeed = 230,
             playerMoveSpeed = 400.0,
-            bulletMoveSpeed = playerMoveSpeed * 3.0,
+            bulletMoveSpeed = playerMoveSpeed * 0.5,
             hp = 100, 
             bulletDamage = 10,
-            mapGravity = 9.82,
+            mapGravity = 7.0,
             playerMass = 100.0,
             bulletMass = 3.0,
             unitSize = 20, 
@@ -28,7 +28,7 @@ function startGame(){
                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 1
                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 2
-                   [1, 0, 1, 0, 0, 0, 0, 0, 0, 1], // 3
+                   [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 3
                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 4
                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 5
                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 6
@@ -374,7 +374,7 @@ function startGame(){
                 canJump = true;
             }
             
-            //check player wall collision
+            //check player wall collision ------------?
             if(checkWallCollision(controls.getObject().position)){
                 console.log("Don't walk through walls..! :O");
             }
@@ -423,8 +423,8 @@ function startGame(){
             //if bullet hasn't collided, move bullet
             if(!hit){
                 bullet.translateX(bulletVelocity * dir.x); //move along x axis
-                bullet.translateZ(bulletVelocity * dir.z); //move along z axis
                 bullet.translateY(bulletVelocity * dir.y); //move along y axis
+                bullet.translateZ(bulletVelocity * dir.z); //move along z axis
                 //console.log("dir x: " + bullet.ray.direction.x + "dir y: " + bullet.ray.direction.y + "dir z: " + bullet.ray.direction.z);
             }
         }
@@ -460,7 +460,7 @@ function startGame(){
         }
     }
 
-    //___________________________________________________
+//___________________________________________________
 
     var bulletMaterial = new THREE.MeshBasicMaterial(bulletColor);
     var bulletGeometry = new THREE.SphereGeometry(3, 5, 5);
@@ -472,23 +472,26 @@ function startGame(){
         
         //set new bullets position to position of shooter
         newBullet.position.set(object.getObject().position.x,
-                               object.getObject().position.y * 0.8,
+                               object.getObject().position.y,
                                object.getObject().position.z);
         
         //if the object shooting is camera, shoot the bullet in the cursors direction
         if(object === controls){
-            var vector = new THREE.Vector3(mouse.x, mouse.y, mouse.z);
+            var vector = new THREE.Vector3(mouse.x, mouse.y, 1);//mouse.z);
+            
         }
+/*  
         else{
         var vector = controls.getObject().position.clone();
         }
+*/
             //translate vector from 2D to 3D
             vector.unproject(camera);
             //create new bullet as a ray starting at shooter's position
             //(position of camera, direction to shoot)
             newBullet.ray = new THREE.Ray(
-                object.position,
-                vector.sub(object.getObject().position).normalize()); //---------?
+                object.getObject().position,
+                vector.sub(object.getObject().position).normalize());
 
         newBullet.objType = "bullet"; //give the bullet a name tag
         newBullet.owner = object; //give the bullet an owner property (who fired it)
@@ -496,7 +499,7 @@ function startGame(){
         bullets.push(newBullet); //add the new bullet to bullets array
         scene.add(newBullet); //add the new bullet to scene
     }
-    //___________________________________________________
+//___________________________________________________
 
 
     /*
