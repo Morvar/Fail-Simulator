@@ -10,10 +10,10 @@ function startGame(){
             playerMass = 100.0,
             bulletMass = 3.0,
             unitSize = 20, 
-            wallHeightUnitSize = unitSize * 2.0,
+            wallHeight = 2.0,
             cameraHeight = 0.25,
             floorHeight = 10,
-            ceilingHeightUnitsize = floorHeight * unitSize + wallHeightUnitSize,
+            ceilingHeight = floorHeight + wallHeight,
             mouse = {x: 0, y: 0},
             width = window.innerWidth, 
             height = window.innerHeight, 
@@ -302,9 +302,9 @@ function startGame(){
         var direcLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
         var direcLight3 = new THREE.DirectionalLight(0x006666, 0.2);
         //set position of light source
-        direcLight1.position.set(mapWidth * unitSize/ 2, wallHeightUnitSize / 2, mapWidth * unitSize/ 2);
-        direcLight2.position.set(-mapWidth * unitSize/ 2, wallHeightUnitSize / 2, -mapWidth * unitSize / 2);
-        direcLight3.position.set(0, wallHeightUnitSize, 0);
+        direcLight1.position.set(mapWidth * unitSize/ 2, wallHeight * unitSize / 2, mapWidth * unitSize/ 2);
+        direcLight2.position.set(-mapWidth * unitSize/ 2, wallHeight * unitSize / 2, -mapWidth * unitSize / 2);
+        direcLight3.position.set(0, wallHeight * unitSize, 0);
         scene.add(direcLight1);
         scene.add(direcLight2);
         scene.add(direcLight3);
@@ -326,12 +326,12 @@ function startGame(){
         var ceiling = new THREE.Mesh(
             new THREE.BoxGeometry(units * unitSize, floorHeight, units * unitSize), 
             new THREE.MeshLambertMaterial(0xff0000));
-            ceiling.position.y = ceilingHeightUnitsize/2;
+            ceiling.position.y = ceilingHeight * unitSize/2;
             console.log("adding ceiling at y: " + ceiling.position.y);
         scene.add(ceiling);
         
         //basic wall structure
-        var cube = new THREE.BoxGeometry(unitSize, wallHeightUnitSize, unitSize); 
+        var cube = new THREE.BoxGeometry(unitSize, wallHeight * unitSize, unitSize); 
         var wallMaterial = new THREE.MeshLambertMaterial(wall1Color);
 
         //loop through map and place wallcubes
@@ -345,7 +345,7 @@ function startGame(){
                     
                     //center map around 0,0 coords
                     wallCube.position.x = (i - units/2) * unitSize + unitSize / 2;
-                    wallCube.position.y = wallHeightUnitSize/2;
+                    wallCube.position.y = wallHeight * unitSize/2;
                     wallCube.position.z = (j - units/2) * unitSize + unitSize / 2;
                     scene.add(wallCube);
                     mapObjects.push(wallCube);
@@ -451,7 +451,7 @@ function startGame(){
             }
             
             //bullet collides with ceiling/sky
-            if(pos.y >= ceilingHeightUnitsize){ //if bullet has reached ceiling level-
+            if(pos.y >= ceilingHeight * unitSize){ //if bullet has reached ceiling level-
                 console.log("Ceiling collision for bullet position x: " + pos.x + " z: " + pos.z + "y: " + pos.y + " detected");
                 bullets.splice(i, 1); //remove 1 bullet from bullets array
                 scene.remove(bullet); //remove the bullet from scene
