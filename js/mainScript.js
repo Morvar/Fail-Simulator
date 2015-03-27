@@ -23,7 +23,7 @@ function startGame(){
 
             bullets = [],
             mapObjects = [],
-
+/*
             map =  [//0  1  2  3  4  5  6  7  8  9
                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 1
@@ -36,6 +36,27 @@ function startGame(){
                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1], // 8
                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 9
                    ], 
+*/
+            map =  [//01  2  3  4  5  6  7  8  9  10 11 12 13 14 15
+                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
+                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 1
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 2
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 3
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 4
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 5
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 6
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 7
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 8
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 9
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 10
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 11
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 12
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 13
+                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 14
+                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 15
+                   ], 
+
+                
             mapWidth = map[0].length, 
             mapHeight = map.length,
 
@@ -44,7 +65,7 @@ function startGame(){
             skyColor = '#85D6FF',
             bulletColor = {color: 0xCC99FF},
             wall1Color = {color: 0x333300},
-            fogColor = 0x00AAFF,
+            fogColor = 0x8AB8E6,//0x00AAFF, blue
 
             controlsEnabled = false,
             moveForward = false,
@@ -235,7 +256,7 @@ function startGame(){
         //create renderer. set render size to browser window size
         renderer = new THREE.WebGLRenderer();
         renderer.setSize(width, height);
-        renderer.setClearColor(0xffffff);
+        renderer.setClearColor(fogColor); //background/sky color
         renderer.setPixelRatio(window.devicePixelRatio);
         //append the renderer as a child node to the body of the HTML document.
         //three.js creates a canvas inside body element for rendering the scene
