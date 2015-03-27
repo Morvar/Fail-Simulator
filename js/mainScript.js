@@ -10,7 +10,7 @@ function startGame(){
             playerMass = 100.0,
             bulletMass = 3.0,
             unitSize = 20, 
-            wallHeight = unitSize * 1.5,
+            wallHeight = unitSize * 4.0,
             cameraHeight = 0.25,
             floorHeight = 10,
             mouse = {x: 0, y: 0},
@@ -19,7 +19,7 @@ function startGame(){
             aspect = width/height,
             animationRun = false, 
             paused = false, 
-            scene, camera, controls, renderer, lastMouseMoveTime,
+            scene, camera, controls, renderer, lastMouseMoveTime, lastPlayerMove,
 
             bullets = [],
             mapObjects = [],
@@ -374,22 +374,33 @@ function startGame(){
                 canJump = true;
             }
             
-            //check player wall collision ------------?
+            //...attempt to fix player wall collision
+            
+            //if player is not in an occupied map sector
+            if(!checkWallCollision(controls.getObject().position)){
+                //move player
+                controls.getObject().translateX(playerVector.x * delta);
+                controls.getObject().translateY(playerVector.y * delta);
+                controls.getObject().translateZ(playerVector.z * delta);
+                //store the last player move
+                lastPlayerMove = playerVector;
+            }
+            //if player enters an occupied map sector
             if(checkWallCollision(controls.getObject().position)){
-                console.log("Don't walk through walls..! :O");
+                console.log("Player entered an occupied map sector");
+                //undo the last player move
+                controls.getObject().translateX(-lastPlayerMove.x);
+                controls.getObject().translateY(-lastPlayerMove.y);
+                controls.getObject().translateZ(-lastPlayerMove.z);
             }
             
-            //move player
-            controls.getObject().translateX(playerVector.x * delta);
-            controls.getObject().translateY(playerVector.y * delta);
-            controls.getObject().translateZ(playerVector.z * delta);
-
             //keep player from moving down through the floor
             if(controls.getObject().position.y < floorHeight){
                 playerVector.y = 0;
                 controls.getObject().position.y = floorHeight;
                 canJump = true;
             }
+            
             previousTime = time;
         }
 
@@ -463,7 +474,7 @@ function startGame(){
 //___________________________________________________
 
     var bulletMaterial = new THREE.MeshBasicMaterial(bulletColor);
-    var bulletGeometry = new THREE.SphereGeometry(3, 5, 5);
+    var bulletGeometry = new THREE.SphereGeometry(1, 5, 5);
 
     function addBullet(object){ //the object is the shooter
 
@@ -472,7 +483,7 @@ function startGame(){
         
         //set new bullets position to position of shooter
         newBullet.position.set(object.getObject().position.x,
-                               object.getObject().position.y,
+                               object.getObject().position.y * 1.1,
                                object.getObject().position.z);
         
         //if the object shooting is camera, shoot the bullet in the cursors direction
