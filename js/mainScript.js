@@ -4,7 +4,8 @@ function startGame(){
         var jumpSpeed = 230,
             playerMoveSpeed = 400.0,
             bulletMoveSpeed = playerMoveSpeed * 0.5,
-            hp = 100, 
+            hp = 100,
+            kills = 0,
             bulletDamage = 10,
             mapGravity = 7.0,
             playerMass = 100.0,
@@ -81,6 +82,9 @@ function startGame(){
             startscreen = document.getElementById('startscreen'),
             gameoverscreen = document.getElementById('gameoverscreen');
             gameoverscreen.style.display = 'none';
+                
+            var hud = document.getElementById('hud');
+                hud.style.display = 'none';
         //_________________________________________________
             
         //check if users browser supports pointerlock
@@ -132,6 +136,8 @@ function startGame(){
             //When user clicks on the startscreen, ask browser to enable pointerlock
             startscreen.addEventListener('click', function(event){
                 startscreen.style.display = 'none';
+                //show heads up display
+                hud.style.display = '';
 
                 //pointer locking request for users browser (firefox, chrome)
                 bodyElement.requestPointerLock = bodyElement.requestPointerLock || bodyElement.mozRequestPointerLock || bodyElement.webkitRequestPointerLock;
@@ -280,12 +286,9 @@ function startGame(){
             //.which property indicates which key is pressed
             if (animationRun && e.which === 1 || animationRun && e.which === 16){
                 addBullet(controls); hp -= 5; //-----------temporary way to die
+                document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
             }
         });
-/*
-        //heads-up display----------------------??
-        $('body').append('<div id="hud"><p>HP: <span id="hp">100</span><br/>Kills: <span id="kills">0</span></p></div>');
-*/
     }
     //___________________________________________________
 
@@ -326,7 +329,7 @@ function startGame(){
         var ceiling = new THREE.Mesh(
             new THREE.BoxGeometry(units * unitSize, floorHeight, units * unitSize), 
             new THREE.MeshLambertMaterial(0xff0000));
-            ceiling.position.y = ceilingHeight * unitSize/2;
+            ceiling.position.y = ceilingHeight * unitSize / 2;
             console.log("adding ceiling at y: " + ceiling.position.y);
         scene.add(ceiling);
         
@@ -486,12 +489,12 @@ function startGame(){
         if(hp <= 0){
             animationRun = false;
             $(renderer.domElement).fadeOut(); //fade out renderer
-            //$('#hud').fadeOut(); //fade out HUD
-            //$('#startGame').fadeIn();
+            $('#hud').fadeOut(); //fade out HUD
             blocker.style.display = '-webkit-box';
             blocker.style.display = '-moz-box';
             blocker.style.display = 'box';
             startscreen.style.display = 'none';
+            //hud.style.display = 'none';
             gameoverscreen.style.display = '';
             
             //ask browser to disable pointerlock
@@ -499,14 +502,6 @@ function startGame(){
             document.exitPointerLock();
             controlsEnabled = false;
             controls.enabled = false;
-             
-            
-            /*
-            $('#startGame').html('Return to Main Menu'); //change html text
-            //attach event handler event type 'click'
-            //when 'click', execute the function()
-            //reload the page by setting url to same url
-            $('#startGame').one('click', function(){location = location;});*/
         }
     }
 
