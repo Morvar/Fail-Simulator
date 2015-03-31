@@ -20,7 +20,7 @@ function startGame(){
             height = window.innerHeight, 
             aspect = width/height,
             animationRun = false, 
-            paused = false, 
+            canShoot = false, 
             scene, camera, controls, renderer, lastMouseMoveTime, lastPlayerMove,
 
             bullets = [],
@@ -39,11 +39,11 @@ function startGame(){
                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 9
                    ], 
 */
-            map =  [//01  2  3  4  5  6  7  8  9  10 11 12 13 14 15
-                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
-                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 1
-                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 2
-                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 3
+            map =  [//01  2  3  4  5  6  7  8  9  10 11 12 13 14 15  ---> X
+                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0  Z
+                   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 1  ^
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 2  |
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 3  |
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 4
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 5
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 6
@@ -59,29 +59,36 @@ function startGame(){
                    ], 
 
                 
-            mapWidth = map[0].length, 
-            mapHeight = map.length,
+            mapWidth = map[0].length, //X
+            mapHeight = map.length, //Z
 
             //Map colors:
-            floorColor = {color: 0x164016},
-            skyColor = '#85D6FF',
-            bulletColor = {color: 0xCC99FF},
-            wall1Color = {color: 0x333300},
-            fogColor = 0x8AB8E6,//0x00AAFF, blue
+            floorColor = {color: 0xCEF123},
+            bulletColor = {color: 0x555555},
+            wall1Color = {color: 0x448877},
+            fogColor = 0xFFAAFF//0x557788;//0x00AAFF,
 
-            controlsEnabled = false,
-            moveForward = false,
-            moveBackward = false,
-            moveLeft = false,
-            moveRight = false,
+            var floorMaterial = new THREE.MeshPhongMaterial(floorColor),
+                wall1Material = new THREE.MeshPhongMaterial(wall1Color),
+                ceilingMaterial = new THREE.MeshLambertMaterial(0xff0000),
+                bulletMaterial = new THREE.MeshPhongMaterial(bulletColor);
+                bulletMaterial.shininess = 10;
+            
+                
+            var controlsEnabled = false,
+                moveForward = false,
+                moveBackward = false,
+                moveLeft = false,
+                moveRight = false,
+                canJump,
 
-            previousTime = performance.now(),
-            playerVector = new THREE.Vector3(),
+                previousTime = performance.now(),
+                playerVector = new THREE.Vector3(),
 
-            blocker = document.getElementById('blocker'),
-            startscreen = document.getElementById('startscreen'),
-            gameoverscreen = document.getElementById('gameoverscreen');
-            gameoverscreen.style.display = 'none';
+                blocker = document.getElementById('blocker'),
+                startscreen = document.getElementById('startscreen'),
+                gameoverscreen = document.getElementById('gameoverscreen');
+                gameoverscreen.style.display = 'none';
                 
             var hud = document.getElementById('hud');
                 hud.style.display = 'none';
@@ -138,6 +145,9 @@ function startGame(){
                 startscreen.style.display = 'none';
                 //show heads up display
                 hud.style.display = '';
+                
+                //Make sure shooting is enabled after 1 sec.
+                setTimeout(function(){canShoot = true; console.log("Shooting enabled.")}, 1000);
 
                 //pointer locking request for users browser (firefox, chrome)
                 bodyElement.requestPointerLock = bodyElement.requestPointerLock || bodyElement.mozRequestPointerLock || bodyElement.webkitRequestPointerLock;
@@ -284,7 +294,7 @@ function startGame(){
             e.preventDefault;
             //shoot with left click (id 1) or left shift (id 16)
             //.which property indicates which key is pressed
-            if (animationRun && e.which === 1 || animationRun && e.which === 16){
+            if (animationRun && canShoot && e.which === 1 || animationRun && canShoot && e.which === 16){
                 addBullet(controls); hp -= 5; //-----------temporary way to die
                 document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
             }
@@ -301,12 +311,12 @@ function startGame(){
         scene.add(ambLight);
 
         //DirectionalLight(hex, intensity)
-        var direcLight1 = new THREE.DirectionalLight(0xffffff, 0.5);
-        var direcLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
-        var direcLight3 = new THREE.DirectionalLight(0x006666, 0.2);
+        var direcLight1 = new THREE.DirectionalLight(0xffffff, 2);//0.5);
+        var direcLight2 = new THREE.DirectionalLight(0xffffff, 2);//0.5);
+        var direcLight3 = new THREE.DirectionalLight(0xffffff, 1);//0.2);
         //set position of light source
-        direcLight1.position.set(mapWidth * unitSize/ 2, wallHeight * unitSize / 2, mapWidth * unitSize/ 2);
-        direcLight2.position.set(-mapWidth * unitSize/ 2, wallHeight * unitSize / 2, -mapWidth * unitSize / 2);
+        direcLight1.position.set(mapWidth * unitSize/2, wallHeight * unitSize/2, mapHeight * unitSize/2);
+        direcLight2.position.set(-mapWidth * unitSize/2, wallHeight * unitSize/2, -mapHeight * unitSize/2);
         direcLight3.position.set(0, wallHeight * unitSize, 0);
         scene.add(direcLight1);
         scene.add(direcLight2);
@@ -322,20 +332,19 @@ function startGame(){
         //create the floor of the map
         var floor = new THREE.Mesh(
             new THREE.BoxGeometry(units * unitSize, floorHeight, units * unitSize), 
-            new THREE.MeshLambertMaterial(floorColor));
+            floorMaterial);
         scene.add(floor);
         
         //create the ceiling/sky
         var ceiling = new THREE.Mesh(
             new THREE.BoxGeometry(units * unitSize, floorHeight, units * unitSize), 
-            new THREE.MeshLambertMaterial(0xff0000));
+            ceilingMaterial);
             ceiling.position.y = ceilingHeight * unitSize / 2;
             console.log("adding ceiling at y: " + ceiling.position.y);
         scene.add(ceiling);
         
         //basic wall structure
         var cube = new THREE.BoxGeometry(unitSize, wallHeight * unitSize, unitSize); 
-        var wallMaterial = new THREE.MeshLambertMaterial(wall1Color);
 
         //loop through map and place wallcubes
         for(i = 0; i < mapHeight; i++){
@@ -344,7 +353,7 @@ function startGame(){
                 //if the value of [i][j] in the 2d array 'map' 
                 // is 1 (or higher), place wallcube
                 if(map[i][j] > 0){
-                    var wallCube = new THREE.Mesh(cube, wallMaterial);
+                    var wallCube = new THREE.Mesh(cube, wall1Material);
                     
                     //center map around 0,0 coords
                     wallCube.position.x = (i - units/2) * unitSize + unitSize / 2;
@@ -488,6 +497,7 @@ function startGame(){
         //Fade in Game Over screen
         if(hp <= 0){
             animationRun = false;
+            canShoot = false;
             $(renderer.domElement).fadeOut(); //fade out renderer
             $('#hud').fadeOut(); //fade out HUD
             blocker.style.display = '-webkit-box';
@@ -507,7 +517,6 @@ function startGame(){
 
 //___________________________________________________
 
-    var bulletMaterial = new THREE.MeshBasicMaterial(bulletColor);
     var bulletGeometry = new THREE.SphereGeometry(1, 5, 5);
 
     function addBullet(object){ //the object is the shooter
@@ -522,7 +531,7 @@ function startGame(){
         
         //if the object shooting is camera, shoot the bullet in the cursors direction
         if(object === controls){
-            var vector = new THREE.Vector3(mouse.x, mouse.y, 1);//mouse.z);
+            var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
             
         }
 /*  
@@ -545,31 +554,6 @@ function startGame(){
         scene.add(newBullet); //add the new bullet to scene
     }
 //___________________________________________________
-
-
-    /*
-    //handle key press (pause)
-    function keyDown(e){
-        //prevent scrolling
-        e.preventDefault();
-        //space key down
-        if(e.keyCode == 32){
-            if(animationRun){
-            animationRun = false;
-            paused = true;
-            console.log("Space was pressed, game is paused");
-            }
-            else if(animationRun == false && paused == true){
-            animationRun = true;
-            paused = false;
-            animate();
-            console.log("Space was pressed, game is running");
-            }
-        }
-    }
-    */
-
-    //___________________________________________________
 
     //check if object has collided with a wall
     function checkWallCollision(objPosition){
