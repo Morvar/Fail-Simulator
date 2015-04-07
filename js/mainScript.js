@@ -11,10 +11,9 @@ function startGame(){
             playerMass = 100.0,
             bulletMass = 3.0,
             unitSize = 20, 
-            wallHeight = 2.0,
+            wallHeight = 5.0,
             cameraHeight = 0.25,
-            floorHeight = 10,
-            ceilingHeight = floorHeight + wallHeight,
+            floorHeight = 10.0,
             mouse = {x: 0, y: 0},
             width = window.innerWidth, 
             height = window.innerHeight, 
@@ -25,6 +24,7 @@ function startGame(){
 
             bullets = [],
             mapObjects = [],
+            mobs = [],
 /*
             map =  [//0  1  2  3  4  5  6  7  8  9
                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
@@ -65,7 +65,7 @@ function startGame(){
             //Map colors:
             floorColor = {color: 0xCEF123},
             bulletColor = {color: 0x555555},
-            wall1Color = {color: 0x448877},
+            wall1Color = {color: 0x438776},
             fogColor = 0xFFAAFF//0x557788;//0x00AAFF,
 
             var floorMaterial = new THREE.MeshPhongMaterial(floorColor),
@@ -188,7 +188,7 @@ function startGame(){
         //scene setup - creating the world. the scene holds the other objects
         scene = new THREE.Scene();
         //add fog to the scene
-        scene.fog = new THREE.FogExp2(fogColor, 0.01); //(color hex, density)
+        scene.fog = new THREE.FogExp2(fogColor, 0.005); //(color hex, density)
 
         //create perspective camera(FOV field of view [degrees], 
         //aspect ratio[width/height of element],near, far [clipping plane. 
@@ -311,8 +311,8 @@ function startGame(){
         scene.add(ambLight);
 
         //DirectionalLight(hex, intensity)
-        var direcLight1 = new THREE.DirectionalLight(0xffffff, 2);//0.5);
-        var direcLight2 = new THREE.DirectionalLight(0xffffff, 2);//0.5);
+        var direcLight1 = new THREE.DirectionalLight(0xffffff, 1.5);//0.5);
+        var direcLight2 = new THREE.DirectionalLight(0xffffff, 1.5);//0.5);
         var direcLight3 = new THREE.DirectionalLight(0xffffff, 1);//0.2);
         //set position of light source
         direcLight1.position.set(mapWidth * unitSize/2, wallHeight * unitSize/2, mapHeight * unitSize/2);
@@ -339,7 +339,7 @@ function startGame(){
         var ceiling = new THREE.Mesh(
             new THREE.BoxGeometry(units * unitSize, floorHeight, units * unitSize), 
             ceilingMaterial);
-            ceiling.position.y = ceilingHeight * unitSize / 2;
+            ceiling.position.y = wallHeight * unitSize;
             console.log("adding ceiling at y: " + ceiling.position.y);
         scene.add(ceiling);
         
@@ -365,6 +365,7 @@ function startGame(){
             }
         }
     }
+    
     //___________________________________________________
     
     //animate calls render() repeatedly every time browser can render new frame
@@ -416,7 +417,7 @@ function startGame(){
                 canJump = true;
             }
             
-            //...attempt to fix player wall collision
+            //...attempt to fix player wall collision:
             
             //if player is not in an occupied map sector
             if(!checkWallCollision(controls.getObject().position)){
@@ -463,7 +464,7 @@ function startGame(){
             }
             
             //bullet collides with ceiling/sky
-            if(pos.y >= ceilingHeight * unitSize){ //if bullet has reached ceiling level-
+            if(pos.y >= wallHeight * unitSize){ //if bullet has reached ceiling level-
                 console.log("Ceiling collision for bullet position x: " + pos.x + " z: " + pos.z + "y: " + pos.y + " detected");
                 bullets.splice(i, 1); //remove 1 bullet from bullets array
                 scene.remove(bullet); //remove the bullet from scene
