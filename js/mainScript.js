@@ -65,6 +65,7 @@ function startGame(){
             //Map colors:
             floorColor = {color: 0xCEF123},
             bulletColor = {color: 0x555555},
+            mobColor = {color: 0x555588},
             wall1Color = {color: 0x438776},
             fogColor = 0xFFAAFF//0x557788;//0x00AAFF,
 
@@ -73,6 +74,7 @@ function startGame(){
                 ceilingMaterial = new THREE.MeshLambertMaterial(0xff0000),
                 bulletMaterial = new THREE.MeshPhongMaterial(bulletColor);
                 bulletMaterial.shininess = 10;
+                mobMaterial = new THREE.MeshPhongMaterial(mobColor);
             
                 
             var controlsEnabled = false,
@@ -533,20 +535,21 @@ function startGame(){
         //if the object shooting is camera, shoot the bullet in the cursors direction
         if(object === controls){
             var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
-            
         }
+        
 /*  
         else{
         var vector = controls.getObject().position.clone();
         }
 */
-            //translate vector from 2D to 3D
-            vector.unproject(camera);
-            //create new bullet as a ray starting at shooter's position
-            //(position of camera, direction to shoot)
-            newBullet.ray = new THREE.Ray(
-                object.getObject().position,
-                vector.sub(object.getObject().position).normalize());
+        //translate vector from 2D to 3D
+        vector.unproject(camera);
+        //create new bullet as a ray starting at shooter's position
+        //(position of camera, direction to shoot)
+        newBullet.ray = new THREE.Ray(
+            object.getObject().position,
+            vector.sub(object.getObject().position).normalize()
+        );
 
         newBullet.objType = "bullet"; //give the bullet a name tag
         newBullet.owner = object; //give the bullet an owner property (who fired it)
@@ -554,7 +557,27 @@ function startGame(){
         bullets.push(newBullet); //add the new bullet to bullets array
         scene.add(newBullet); //add the new bullet to scene
     }
+
 //___________________________________________________
+
+    var mobGeometry = new THREE.SphereGeometry(5, 5, 5);
+        
+    function addMob(){
+
+        //create the new mob with the mesh and material
+        var newMob = new THREE.Mesh(mobGeometry, mobMaterial);
+        
+        //set the new mobs position
+        newMob.position.set(0, 0, unitSize * 1.2);
+        
+        //create mobs movement vector
+        
+        //var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
+        mobs.push(newMob); //add the new mob to mobs array
+        scene.add(newMob); //add the new mob to scene
+        
+    }
+//___________________________________________
 
     //check if object has collided with a wall
     function checkWallCollision(objPosition){
