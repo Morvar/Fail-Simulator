@@ -4,9 +4,11 @@ function startGame(){
         var jumpSpeed = 230,
             playerMoveSpeed = 400.0,
             bulletMoveSpeed = playerMoveSpeed * 0.5,
+            mobMoveSpeed = playerMoveSpeed,
             hp = 100,
             kills = 0,
             bulletDamage = 10,
+            mobRadius = 5,
             mapGravity = 7.0,
             playerMass = 100.0,
             bulletMass = 3.0,
@@ -65,7 +67,7 @@ function startGame(){
             //Map colors:
             floorColor = {color: 0xCEF123},
             bulletColor = {color: 0x555555},
-            mobColor = {color: 0x555588},
+            mobColor = {color: 0x55DD66},
             wall1Color = {color: 0x438776},
             fogColor = 0xFFAAFF//0x557788;//0x00AAFF,
 
@@ -299,6 +301,7 @@ function startGame(){
             if (animationRun && canShoot && e.which === 1 || animationRun && canShoot && e.which === 16){
                 addBullet(controls); hp -= 5; //-----------temporary way to die
                 document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
+                addMob();
             }
         });
     }
@@ -493,6 +496,9 @@ function startGame(){
                 //console.log("dir x: " + bullet.ray.direction.x + "dir y: " + bullet.ray.direction.y + "dir z: " + bullet.ray.direction.z);
             }
         }
+        
+        //Move mobs -------------------------??
+        
 
         //repaint everything
         renderer.render(scene, camera);
@@ -560,7 +566,7 @@ function startGame(){
 
 //___________________________________________________
 
-    var mobGeometry = new THREE.SphereGeometry(5, 5, 5);
+    var mobGeometry = new THREE.SphereGeometry(mobRadius, 7, 7);
         
     function addMob(){
 
@@ -568,7 +574,7 @@ function startGame(){
         var newMob = new THREE.Mesh(mobGeometry, mobMaterial);
         
         //set the new mobs position
-        newMob.position.set(0, 0, unitSize * 1.2);
+        newMob.position.set(0, unitSize * 1.2, 0);
         
         //create mobs movement vector
         
