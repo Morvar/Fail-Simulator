@@ -4,7 +4,7 @@ function startGame(){
         var jumpSpeed = 230,
             playerMoveSpeed = 400.0,
             bulletMoveSpeed = playerMoveSpeed * 0.5,
-            mobMoveSpeed = playerMoveSpeed,
+            mobMoveSpeed = playerMoveSpeed * 0.1,
             hp = 100,
             kills = 0,
             bulletDamage = 10,
@@ -486,6 +486,21 @@ function startGame(){
                 hit = true; //(will this be needed?)
             }
             
+            //bullet collides with mob
+            for(i = mobs.length-1; i >= 0; i--){
+            var mob = mobs[i], //the current mob being examined
+                mobPos = mob.position; //the position of the mob x, y, z
+                
+                if(dist(mobPos.x, mobPos.y, mobPos.z, pos.x, pos.y, pos.z) <= mobRadius){
+                    bullets.splice(i, 1); //remove 1 bullet from bullets array
+                    scene.remove(bullet); //remove the bullet from scene
+                    mobs.splice(i, 1); //remove 1 mob from bullets array
+                    scene.remove(mob); //remove the mob from scene
+                    hit = true;
+                    //break;
+                }
+            }
+            
             var bulletVelocity = bulletMoveSpeed * delta;
             
             //if bullet hasn't collided, move bullet
@@ -497,9 +512,41 @@ function startGame(){
             }
         }
         
-        //Move mobs -------------------------??
         
+        //Handle mobs -------------------------------------??
+        var mobVelocity = mobMoveSpeed * delta;
+        
+        for(i = mobs.length-1; i >= 0; i--){
+            var mob = mobs[i], //the current mob being examined
+                mobPos = mob.position, //the position of the mob x, y, z
+                mobDir = mob.ray.direction; //the direction of the mob
 
+/*            
+            //if player and mob collide
+            if(dist(pos.x, pos.y, pos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z)){
+            }
+*/ 
+/*        
+            for(i = bullets.length-1; i >= 0; i--){
+                var bullet = bullets[i], //the current bullet being examined
+                bulletPos = bullet.position; //the position of the bullet x, y, z
+    
+                if(dist(mobPos.x, mobPos.y, mobPos.z, bulletPos.x, bulletPos.y, bulletPos.z) <= mobRadius){
+                    bullets.splice(i, 1); //remove 1 bullet from bullets array
+                    scene.remove(bullet); //remove the bullet from scene
+                    mobs.splice(i, 1); //remove 1 bullet from bullets array
+                    scene.remove(mob); //remove the bullet from scene
+                }
+            }
+*/
+            //if(mob reaches wall/floor/ceiling){mobDir inverted?} ------------------??
+            
+                mob.translateX(mobVelocity * mobDir.x); //move along x axis
+                mob.translateY(mobVelocity * mobDir.y); //move along y axis
+                mob.translateZ(mobVelocity * mobDir.z); //move along z axis
+        }
+
+        
         //repaint everything
         renderer.render(scene, camera);
 
@@ -543,14 +590,14 @@ function startGame(){
             var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
         }
         
-/*  
+
         else{
-        var vector = controls.getObject().position.clone();
+        var vector = object.position.clone();
         }
-*/
+
         //translate vector from 2D to 3D
         vector.unproject(camera);
-        //create new bullet as a ray starting at shooter's position
+        //give new bullet a ray starting at shooter's position
         //(position of camera, direction to shoot)
         newBullet.ray = new THREE.Ray(
             object.getObject().position,
@@ -576,9 +623,21 @@ function startGame(){
         //set the new mobs position
         newMob.position.set(0, unitSize * 1.2, 0);
         
-        //create mobs movement vector
+        //give mob a random movement vector
+        var vector = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
         
-        //var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
+        //translate vector from 2D to 3D
+        vector.unproject(camera);
+        //give new mob a ray
+        //(position of new mob, direction vector)
+        newMob.ray = new THREE.Ray(
+            newMob.position,
+            vector.sub(newMob.position).normalize()
+        );
+        
+        newMob.objType = "mob"; //give the mob a name tag
+        console.log("A " + newMob.objType + " spawned at x: " + newMob.position.x + ", y: " + newMob.position.y + ", z: " + newMob.position.z);
+        
         mobs.push(newMob); //add the new mob to mobs array
         scene.add(newMob); //add the new mob to scene
         
