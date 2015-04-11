@@ -4,10 +4,11 @@ function startGame(){
         var jumpSpeed = 230,
             playerMoveSpeed = 400.0,
             bulletMoveSpeed = playerMoveSpeed * 0.5,
-            mobMoveSpeed = playerMoveSpeed * 0.1,
+            mobMoveSpeed = playerMoveSpeed * 0.05,
             hp = 100,
             kills = 0,
             bulletDamage = 10,
+            mobDamage = 20,
             mobRadius = 5,
             mapGravity = 7.0,
             playerMass = 100.0,
@@ -388,7 +389,7 @@ function startGame(){
 
         if(controlsEnabled){
             raycaster.ray.origin.copy(controls.getObject().position);
-            raycaster.ray.origin.y -= 10; //floorHeight-------??
+            raycaster.ray.origin.y -= 10; //floorHeight--------------??
             
             //check if player is on a map object
             //intersectObjects returns array of intersections
@@ -474,6 +475,14 @@ function startGame(){
                 scene.remove(bullet); //remove the bullet from scene
                 continue; //if bullet has hit ceiling, skip the rest of this iteration
             }
+            
+            //bullet collides with floor
+            if(pos.y <= floorHeight/2){
+                console.log("Floor collision for bullet position x: " + pos.x + " z: " + pos.z + "y: " + pos.y + " detected");
+                bullets.splice(i, 1); //remove 1 bullet from bullets array
+                scene.remove(bullet); //remove the bullet from scene
+                continue; //if bullet has hit floor, skip the rest of this iteration
+            }
 
             //bullet collides with player
             //check owner - player (camera) can't get hit by own bullet
@@ -482,10 +491,11 @@ function startGame(){
                 if (hp < 0){ hp = 0;} //set hp to 0 if below 0
                 bullets.splice(i, 1); //remove 1 bullet from bullets array
                 scene.remove(bullet); //remove the bullet from scene
-                hit = true; //(will this be needed?)
+                continue; //if bullet has hit player, skip the rest of this iteration
+                //hit = true; //(will this be needed?)
             }
             
-            //bullet collides with mob
+            //bullet hits mob
             for(j = mobs.length-1; j >= 0; j--){
             var mob = mobs[j], //the current mob being examined
                 mobPos = mob.position; //the position of the mob x, y, z
@@ -493,10 +503,11 @@ function startGame(){
                 if(dist(mobPos.x, mobPos.y, mobPos.z, pos.x, pos.y, pos.z) <= mobRadius){
                     bullets.splice(i, 1); //remove 1 bullet from bullets array
                     scene.remove(bullet); //remove the bullet from scene
-                    mobs.splice(j, 1); //remove 1 mob from bullets array
+                    mobs.splice(j, 1); //remove 1 mob from mobs array
                     scene.remove(mob); //remove the mob from scene
                     hit = true;
-                    //break;
+                    kills += 1;
+                    document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
                 }
             }
             
@@ -511,38 +522,39 @@ function startGame(){
             }
         }
         
-        
-        //Handle mobs -------------------------------------??
+        //handle mobs
         var mobVelocity = mobMoveSpeed * delta;
         
         for(i = mobs.length-1; i >= 0; i--){
             var mob = mobs[i], //the current mob being examined
                 mobPos = mob.position, //the position of the mob x, y, z
                 mobDir = mob.ray.direction; //the direction of the mob
+          
+            //player and mob collide
+            if(dist(mobPos.x, mobPos.y, mobPos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) <= mobRadius){
+                console.log("Player and mob collide - player takes " + mobDamage + " hp damage and mob is deleted.");
+                hp -= mobDamage; //player takes damage
+                if (hp < 0){ hp = 0;} //set hp to 0 if below 0
+                mobs.splice(i, 1); //remove 1 mob from mobs array
+                scene.remove(mob); //remove the mob from scene
+                //update hud
+                document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
+            }
 
-/*            
-            //if player and mob collide
-            if(dist(pos.x, pos.y, pos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z)){
+            //mob hits wall - change direction
+            if(checkWallCollision(mobPos)){
+                mobDir.x = mobDir.x * (-1);
+                mobDir.z = mobDir.z * (-1);
             }
-*/ 
-/*        
-            for(i = bullets.length-1; i >= 0; i--){
-                var bullet = bullets[i], //the current bullet being examined
-                bulletPos = bullet.position; //the position of the bullet x, y, z
-    
-                if(dist(mobPos.x, mobPos.y, mobPos.z, bulletPos.x, bulletPos.y, bulletPos.z) <= mobRadius){
-                    bullets.splice(i, 1); //remove 1 bullet from bullets array
-                    scene.remove(bullet); //remove the bullet from scene
-                    mobs.splice(i, 1); //remove 1 bullet from bullets array
-                    scene.remove(mob); //remove the bullet from scene
-                }
-            }
-*/
-            //if(mob reaches wall/floor/ceiling){mobDir inverted?} ------------------??
             
-                mob.translateX(mobVelocity * mobDir.x); //move along x axis
-                mob.translateY(mobVelocity * mobDir.y); //move along y axis
-                mob.translateZ(mobVelocity * mobDir.z); //move along z axis
+            //mob hits floor/ceiling
+            if(mobPos.y >= wallHeight * unitSize || mobPos.y <= floorHeight/2){
+                mobDir.y = mobDir.y * (-1);
+            }
+            
+            mob.translateX(mobVelocity * mobDir.x); //move along x axis
+            mob.translateY(mobVelocity * mobDir.y); //move along y axis
+            mob.translateZ(mobVelocity * mobDir.z); //move along z axis
         }
 
         
@@ -624,16 +636,11 @@ function startGame(){
         newMob.position.set(0, unitSize * 1.2, 0);
         
         //give mob a random movement vector
-        var vector = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+        var vector = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
         
-        //translate vector from 2D to 3D
-        vector.unproject(camera);
         //give new mob a ray
         //(position of new mob, direction vector)
-        newMob.ray = new THREE.Ray(
-            newMob.position,
-            vector.sub(newMob.position).normalize()
-        );
+        newMob.ray = new THREE.Ray(newMob.position, vector);
         
         newMob.objType = "mob"; //give the mob a name tag
         console.log("A " + newMob.objType + " spawned at x: " + newMob.position.x + ", y: " + newMob.position.y + ", z: " + newMob.position.z);
