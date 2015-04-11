@@ -49,7 +49,7 @@ function startGame(){
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 4
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 5
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 6
-                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 7
+                   [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1], // 7
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 8
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 9
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 10
@@ -299,8 +299,7 @@ function startGame(){
             //shoot with left click (id 1) or left shift (id 16)
             //.which property indicates which key is pressed
             if (animationRun && canShoot && e.which === 1 || animationRun && canShoot && e.which === 16){
-                addBullet(controls); hp -= 5; //-----------temporary way to die
-                document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
+                addBullet(controls);
                 addMob();
             }
         });
@@ -437,9 +436,9 @@ function startGame(){
             if(checkWallCollision(controls.getObject().position)){
                 console.log("Player entered an occupied map sector");
                 //undo the last player move
-                controls.getObject().translateX(-lastPlayerMove.x);
-                controls.getObject().translateY(-lastPlayerMove.y);
-                controls.getObject().translateZ(-lastPlayerMove.z);
+                controls.getObject().translateX(-lastPlayerMove.x * delta);
+                controls.getObject().translateY(-lastPlayerMove.y * delta);
+                controls.getObject().translateZ(-lastPlayerMove.z * delta);
             }
             
             //keep player from moving down through the floor
@@ -487,14 +486,14 @@ function startGame(){
             }
             
             //bullet collides with mob
-            for(i = mobs.length-1; i >= 0; i--){
-            var mob = mobs[i], //the current mob being examined
+            for(j = mobs.length-1; j >= 0; j--){
+            var mob = mobs[j], //the current mob being examined
                 mobPos = mob.position; //the position of the mob x, y, z
                 
                 if(dist(mobPos.x, mobPos.y, mobPos.z, pos.x, pos.y, pos.z) <= mobRadius){
                     bullets.splice(i, 1); //remove 1 bullet from bullets array
                     scene.remove(bullet); //remove the bullet from scene
-                    mobs.splice(i, 1); //remove 1 mob from bullets array
+                    mobs.splice(j, 1); //remove 1 mob from bullets array
                     scene.remove(mob); //remove the mob from scene
                     hit = true;
                     //break;
@@ -582,12 +581,13 @@ function startGame(){
         
         //set new bullets position to position of shooter
         newBullet.position.set(object.getObject().position.x,
-                               object.getObject().position.y * 1.1,
+                               object.getObject().position.y,
                                object.getObject().position.z);
         
         //if the object shooting is camera, shoot the bullet in the cursors direction
         if(object === controls){
-            var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
+            var vector = new THREE.Vector3(0, 0, 1);//mouse.x, mouse.y, 1); //window.innerWidth/2, window.innerHeight/2, 1);
+            console.log("mouse x: " + mouse.x + "mouse y: " + mouse.y);
         }
         
 
@@ -697,10 +697,10 @@ function startGame(){
 
     //find out in which map sector an object is located
     function retrieveMapSector(objPosition){
-        var x = //Math.floor(object.x / unitSize);
-                Math.floor((objPosition.x + unitSize / 2) / unitSize + mapWidth / 2);
-        var z = //Math.floor(object.x / unitSize);
-                Math.floor((objPosition.z + unitSize / 2) / unitSize + mapWidth / 2);
+        var x = //Math.floor(objPosition.x / unitSize);
+                Math.floor((objPosition.x + unitSize/2) / unitSize + mapWidth/2 - 0.5);
+        var z = //Math.floor(objPosition.z / unitSize);
+                Math.floor((objPosition.z + unitSize/2) / unitSize + mapWidth/2 - 0.5);
         return {x: x, z: z};
     }
 
@@ -724,3 +724,5 @@ function startGame(){
         if(controls){controls.freeze = true;}
     });
 }
+
+//document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
