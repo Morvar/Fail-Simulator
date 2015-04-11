@@ -152,7 +152,7 @@ function startGame(){
                 hud.style.display = '';
                 
                 //Make sure shooting is enabled after 1 sec.
-                setTimeout(function(){canShoot = true; console.log("Shooting enabled.")}, 1000);
+                setTimeout(function(){canShoot = true; console.log("Shooting enabled.")}, 500);
 
                 //pointer locking request for users browser (firefox, chrome)
                 bodyElement.requestPointerLock = bodyElement.requestPointerLock || bodyElement.mozRequestPointerLock || bodyElement.webkitRequestPointerLock;
@@ -235,6 +235,10 @@ function startGame(){
                 case 32: //space
                     if(canJump) playerVector.y += jumpSpeed;
                     canJump = false;
+                    break;
+                
+                case 27: //escape (reload page)
+                    location.reload();
                     break;
             }
         };
@@ -531,7 +535,7 @@ function startGame(){
                 mobDir = mob.ray.direction; //the direction of the mob
           
             //player and mob collide
-            if(dist(mobPos.x, mobPos.y, mobPos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) <= mobRadius){
+            if(dist(mobPos.x, mobPos.y, mobPos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) <= mobRadius *2){
                 console.log("Player and mob collide - player takes " + mobDamage + " hp damage and mob is deleted.");
                 hp -= mobDamage; //player takes damage
                 if (hp < 0){ hp = 0;} //set hp to 0 if below 0
@@ -548,7 +552,7 @@ function startGame(){
             }
             
             //mob hits floor/ceiling
-            if(mobPos.y >= wallHeight * unitSize || mobPos.y <= floorHeight/2){
+            if(mobPos.y >= wallHeight * unitSize - mobRadius || mobPos.y <= floorHeight/2 + mobRadius/2){
                 mobDir.y = mobDir.y * (-1);
             }
             
@@ -689,13 +693,7 @@ function startGame(){
             renderer.setSize(width, height);
         }
     }
-/*
-    //calculate distance between objects //add z!!!!--------------------
-    function dist(x1, z1, x2, z2){
-        //pythagoras
-        return Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((z2-z1), 2));
-    }
-*/
+
     function dist(x1, y1, z1, x2, y2, z2){
         //pythagoras
         var diagonal2D = Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((z2-z1), 2));
@@ -728,7 +726,7 @@ function startGame(){
     });
     //when browser window is out of focus (blurred), no moving around.
     $(window).blur(function(){
-        if(controls){controls.freeze = true;}
+        if(controls){controls.freeze = true; location.reload();}
     });
 }
 

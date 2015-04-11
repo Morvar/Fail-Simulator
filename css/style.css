@@ -39,6 +39,11 @@ canvas {width 100%; height: 100%}
     cursor: pointer;
 }
 
+#escinfo {
+    font-size: 12;
+    color: #cccccc;
+}
+
 #gameoverscreen {
     width: 100%;
 	height: 100%;
