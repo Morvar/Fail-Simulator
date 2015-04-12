@@ -10,6 +10,7 @@ function startGame(){
             bulletDamage = 10,
             mobDamage = 20,
             mobRadius = 5,
+            mobSpawnInterval = 10000,
             mapGravity = 7.0,
             playerMass = 100.0,
             bulletMass = 3.0,
@@ -23,7 +24,7 @@ function startGame(){
             aspect = width/height,
             animationRun = false, 
             canShoot = false, 
-            scene, camera, controls, renderer, lastMouseMoveTime, lastPlayerMove,
+            scene, camera, controls, renderer, lastPlayerMove,
 
             bullets = [],
             mapObjects = [],
@@ -48,12 +49,12 @@ function startGame(){
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 2  |
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 3  |
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 4
-                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 5
+                   [1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1], // 5
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 6
-                   [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1], // 7
+                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 7
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 8
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 9
-                   [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 10
+                   [1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1], // 10
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 11
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 12
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 13
@@ -67,7 +68,8 @@ function startGame(){
 
             //Map colors:
             floorColor = {color: 0xCEF123},
-            bulletColor = {color: 0x555555},
+            playerBulletColor = {color: 0x555555},
+            mobBulletColor = {color: 0x994444},
             mobColor = {color: 0x55DD66},
             wall1Color = {color: 0x438776},
             fogColor = 0xFFAAFF//0x557788;//0x00AAFF,
@@ -75,8 +77,10 @@ function startGame(){
             var floorMaterial = new THREE.MeshPhongMaterial(floorColor),
                 wall1Material = new THREE.MeshPhongMaterial(wall1Color),
                 ceilingMaterial = new THREE.MeshLambertMaterial(0xff0000),
-                bulletMaterial = new THREE.MeshPhongMaterial(bulletColor);
-                bulletMaterial.shininess = 10;
+                playerBulletMaterial = new THREE.MeshPhongMaterial(playerBulletColor);
+                playerBulletMaterial.shininess = 10;
+                mobBulletMaterial = new THREE.MeshPhongMaterial(mobBulletColor);
+                mobBulletMaterial.shininess = 10;
                 mobMaterial = new THREE.MeshPhongMaterial(mobColor);
             
                 
@@ -88,6 +92,7 @@ function startGame(){
                 canJump,
 
                 previousTime = performance.now(),
+                previousMobTime = performance.now(),
                 playerVector = new THREE.Vector3(),
 
                 blocker = document.getElementById('blocker'),
@@ -305,7 +310,6 @@ function startGame(){
             //.which property indicates which key is pressed
             if (animationRun && canShoot && e.which === 1 || animationRun && canShoot && e.which === 16){
                 addBullet(controls);
-                addMob();
             }
         });
     }
@@ -427,20 +431,19 @@ function startGame(){
             }
             
             //...attempt to fix player wall collision:
-            
-            //if player is not in an occupied map sector
+            // if player is not in an occupied map sector
             if(!checkWallCollision(controls.getObject().position)){
-                //move player
+                // move player
                 controls.getObject().translateX(playerVector.x * delta);
                 controls.getObject().translateY(playerVector.y * delta);
                 controls.getObject().translateZ(playerVector.z * delta);
-                //store the last player move
+                // and store the last player move
                 lastPlayerMove = playerVector;
             }
             //if player enters an occupied map sector
             if(checkWallCollision(controls.getObject().position)){
                 console.log("Player entered an occupied map sector");
-                //undo the last player move
+                // undo the last player move
                 controls.getObject().translateX(-lastPlayerMove.x * delta);
                 controls.getObject().translateY(-lastPlayerMove.y * delta);
                 controls.getObject().translateZ(-lastPlayerMove.z * delta);
@@ -453,6 +456,7 @@ function startGame(){
                 canJump = true;
             }
             
+            //store time for next calculation of 'delta'
             previousTime = time;
         }
 
@@ -501,10 +505,11 @@ function startGame(){
             
             //bullet hits mob
             for(j = mobs.length-1; j >= 0; j--){
-            var mob = mobs[j], //the current mob being examined
-                mobPos = mob.position; //the position of the mob x, y, z
+                var mob = mobs[j], //the current mob being examined
+                    mobPos = mob.position; //the position of the mob x, y, z
                 
-                if(dist(mobPos.x, mobPos.y, mobPos.z, pos.x, pos.y, pos.z) <= mobRadius){
+                if(dist(mobPos.x, mobPos.y, mobPos.z, pos.x, pos.y, pos.z) <= mobRadius && bullet.owner === controls){
+                    
                     bullets.splice(i, 1); //remove 1 bullet from bullets array
                     scene.remove(bullet); //remove the bullet from scene
                     mobs.splice(j, 1); //remove 1 mob from mobs array
@@ -527,12 +532,25 @@ function startGame(){
         }
         
         //handle mobs
+        
+        var mobTime = performance.now();
+        if((mobTime - previousMobTime)/1000 >= 5 && mobs.length < 100){
+            addMob();
+            previousMobTime = mobTime;
+        }
+        
         var mobVelocity = mobMoveSpeed * delta;
         
         for(i = mobs.length-1; i >= 0; i--){
             var mob = mobs[i], //the current mob being examined
                 mobPos = mob.position, //the position of the mob x, y, z
                 mobDir = mob.ray.direction; //the direction of the mob
+            
+            var mobShootTime = performance.now();
+            if((mobShootTime - mob.previousMobShootTime)/1000 >= 15){
+                addBullet(mob);
+                mob.previousMobShootTime = mobShootTime;
+            }
           
             //player and mob collide
             if(dist(mobPos.x, mobPos.y, mobPos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) <= mobRadius *2){
@@ -593,36 +611,48 @@ function startGame(){
     function addBullet(object){ //the object is the shooter
 
         //create the new bullet with the mesh and material
-        var newBullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
+        var newBullet;
         
-        //set new bullets position to position of shooter
-        newBullet.position.set(object.getObject().position.x,
-                               object.getObject().position.y,
-                               object.getObject().position.z);
-        
-        //if the object shooting is camera, shoot the bullet in the cursors direction
+        //if the object shooting is player
         if(object === controls){
-            var vector = new THREE.Vector3(0, 0, 1);//mouse.x, mouse.y, 1); //window.innerWidth/2, window.innerHeight/2, 1);
-            console.log("mouse x: " + mouse.x + "mouse y: " + mouse.y);
+            //make it a player bullet
+            newBullet = new THREE.Mesh(bulletGeometry, playerBulletMaterial);
+            
+            //set new bullets position to position of player
+            newBullet.position.set(object.getObject().position.x,
+                                   object.getObject().position.y,
+                                   object.getObject().position.z);
+            
+            //shoot the bullet in the cursors direction
+            var vector = new THREE.Vector3(0, 0, 1);//mouse.x, mouse.y, 1);
+            
+            //translate vector from 2D to 3D
+            vector.unproject(camera);
+            //give new bullet a ray starting at player's position
+            //(position of player, direction to shoot)
+            newBullet.ray = new THREE.Ray(
+                object.getObject().position,
+                vector.sub(object.getObject().position).normalize()
+            );
         }
-        
-
+        //if the shooter isn't player
         else{
-        var vector = object.position.clone();
+            //make it a mob bullet
+            newBullet = new THREE.Mesh(bulletGeometry, mobBulletMaterial);
+            
+            //set new bullets position to position of shooter
+            newBullet.position.set(object.position.x,
+                                   object.position.y,
+                                   object.position.z);
+            var vector = object.position.clone();
+            //translate vector from 2D to 3D
+            vector.unproject(camera);
+            newBullet.ray = new THREE.Ray(object.position, vector.sub(object.position).normalize());
         }
-
-        //translate vector from 2D to 3D
-        vector.unproject(camera);
-        //give new bullet a ray starting at shooter's position
-        //(position of camera, direction to shoot)
-        newBullet.ray = new THREE.Ray(
-            object.getObject().position,
-            vector.sub(object.getObject().position).normalize()
-        );
 
         newBullet.objType = "bullet"; //give the bullet a name tag
         newBullet.owner = object; //give the bullet an owner property (who fired it)
-        console.log("Player fired a " + newBullet.objType + " from x: " + newBullet.position.x + ", y: " + newBullet.position.y + ", z: " + newBullet.position.z);
+        console.log("A " + newBullet.objType + " was fired from x: " + newBullet.position.x + ", y: " + newBullet.position.y + ", z: " + newBullet.position.z);
         bullets.push(newBullet); //add the new bullet to bullets array
         scene.add(newBullet); //add the new bullet to scene
     }
@@ -647,6 +677,7 @@ function startGame(){
         newMob.ray = new THREE.Ray(newMob.position, vector);
         
         newMob.objType = "mob"; //give the mob a name tag
+        newMob.previousMobShootTime = performance.now(); //start the mobs 'shooting clock'
         console.log("A " + newMob.objType + " spawned at x: " + newMob.position.x + ", y: " + newMob.position.y + ", z: " + newMob.position.z);
         
         mobs.push(newMob); //add the new mob to mobs array
