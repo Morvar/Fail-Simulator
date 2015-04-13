@@ -3,14 +3,15 @@ function startGame(){
     //Global variables
         var jumpSpeed = 230,
             playerMoveSpeed = 400.0,
-            bulletMoveSpeed = playerMoveSpeed * 0.5,
+            playerBulletMoveSpeed = playerMoveSpeed * 0.5,
+            mobBulletMoveSpeed = playerMoveSpeed * 0.1,
             mobMoveSpeed = playerMoveSpeed * 0.05,
             hp = 100,
             kills = 0,
             bulletDamage = 10,
             mobDamage = 20,
             mobRadius = 5,
-            mobSpawnInterval = 10000,
+            mobSpawnInterval = 5, //seconds
             mapGravity = 7.0,
             playerMass = 100.0,
             bulletMass = 3.0,
@@ -494,7 +495,8 @@ function startGame(){
 
             //bullet collides with player
             //check owner - player (camera) can't get hit by own bullet
-            if(dist(pos.x, pos.y, pos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) < 50 && bullet.owner != controls){
+            if(dist(pos.x, pos.y, pos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) < mobRadius && bullet.owner != controls){
+                console.log("Player was hit by bullet");
                 hp -= bulletDamage; //lose hp
                 if (hp < 0){ hp = 0;} //set hp to 0 if below 0
                 bullets.splice(i, 1); //remove 1 bullet from bullets array
@@ -520,21 +522,27 @@ function startGame(){
                 }
             }
             
-            var bulletVelocity = bulletMoveSpeed * delta;
+            var bulletVelocity;
             
             //if bullet hasn't collided, move bullet
             if(!hit){
+                if(bullet.owner === controls){
+                    bulletVelocity = playerBulletMoveSpeed * delta;
+                }
+                else{
+                    bulletVelocity = mobBulletMoveSpeed * delta;
+                }
                 bullet.translateX(bulletVelocity * dir.x); //move along x axis
                 bullet.translateY(bulletVelocity * dir.y); //move along y axis
                 bullet.translateZ(bulletVelocity * dir.z); //move along z axis
-                //console.log("dir x: " + bullet.ray.direction.x + "dir y: " + bullet.ray.direction.y + "dir z: " + bullet.ray.direction.z);
             }
         }
         
         //handle mobs
         
         var mobTime = performance.now();
-        if((mobTime - previousMobTime)/1000 >= 5 && mobs.length < 100){
+        //spawn mobs every 'mobSpawnInterval' seconds
+        if((mobTime - previousMobTime)/1000 >= mobSpawnInterval && mobs.length < 100){
             addMob();
             previousMobTime = mobTime;
         }
@@ -547,7 +555,7 @@ function startGame(){
                 mobDir = mob.ray.direction; //the direction of the mob
             
             var mobShootTime = performance.now();
-            if((mobShootTime - mob.previousMobShootTime)/1000 >= 15){
+            if((mobShootTime - mob.previousMobShootTime)/1000 >= 15 && animationRun && canShoot){
                 addBullet(mob);
                 mob.previousMobShootTime = mobShootTime;
             }
