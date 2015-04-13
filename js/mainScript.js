@@ -395,7 +395,8 @@ function startGame(){
 
     //the rendering function
     function render(){
-
+        
+        //handle player moving around
         if(controlsEnabled){
             raycaster.ray.origin.copy(controls.getObject().position);
             raycaster.ray.origin.y -= 10; //floorHeight--------------??
@@ -461,7 +462,8 @@ function startGame(){
             previousTime = time;
         }
 
-        //update the bullets array with for loop
+        
+        //update the bullets array
         //start counting from the last element so old bullets can be removed
         for(i = bullets.length-1; i >= 0; i--){
             var bullet = bullets[i], //the current bullet being examined
@@ -495,12 +497,14 @@ function startGame(){
 
             //bullet collides with player
             //check owner - player (camera) can't get hit by own bullet
-            if(dist(pos.x, pos.y, pos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) < mobRadius && bullet.owner != controls){
+            if(dist(pos.x, pos.y, pos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) < mobRadius*2 && bullet.owner != controls){
                 console.log("Player was hit by bullet");
                 hp -= bulletDamage; //lose hp
                 if (hp < 0){ hp = 0;} //set hp to 0 if below 0
                 bullets.splice(i, 1); //remove 1 bullet from bullets array
                 scene.remove(bullet); //remove the bullet from scene
+                //update hud
+                document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
                 continue; //if bullet has hit player, skip the rest of this iteration
                 //hit = true; //(will this be needed?)
             }
@@ -518,6 +522,7 @@ function startGame(){
                     scene.remove(mob); //remove the mob from scene
                     hit = true;
                     kills += 1;
+                    //update hud
                     document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
                 }
             }
@@ -538,11 +543,12 @@ function startGame(){
             }
         }
         
+        
         //handle mobs
         
         var mobTime = performance.now();
         //spawn mobs every 'mobSpawnInterval' seconds
-        if((mobTime - previousMobTime)/1000 >= mobSpawnInterval && mobs.length < 100){
+        if((mobTime - previousMobTime)/1000 >= mobSpawnInterval && mobs.length < 100 && animationRun && canShoot){
             addMob();
             previousMobTime = mobTime;
         }
@@ -560,7 +566,7 @@ function startGame(){
                 mob.previousMobShootTime = mobShootTime;
             }
           
-            //player and mob collide
+            //mob player collision
             if(dist(mobPos.x, mobPos.y, mobPos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) <= mobRadius *2){
                 console.log("Player and mob collide - player takes " + mobDamage + " hp damage and mob is deleted.");
                 hp -= mobDamage; //player takes damage
@@ -591,7 +597,7 @@ function startGame(){
         //repaint everything
         renderer.render(scene, camera);
 
-        //Fade in Game Over screen
+        //If player dies show game Over screen
         if(hp <= 0){
             animationRun = false;
             canShoot = false;
@@ -690,7 +696,6 @@ function startGame(){
         
         mobs.push(newMob); //add the new mob to mobs array
         scene.add(newMob); //add the new mob to scene
-        
     }
 //___________________________________________
 
