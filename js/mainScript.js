@@ -8,10 +8,16 @@ function startGame(){
             mobMoveSpeed = playerMoveSpeed * 0.05,
             hp = 100,
             kills = 0,
+            level = 1,
+            previousKills = 0,
             bulletDamage = 10,
             mobDamage = 20,
             mobRadius = 5,
+            playerRadius = mobRadius * 1.5,
             mobSpawnInterval = 5, //seconds
+            mobSpawnIntervalChange = 0.15,
+            mobShootInterval = 10,
+            mobShootIntervalChange = 0.15,
             mapGravity = 7.0,
             playerMass = 100.0,
             bulletMass = 3.0,
@@ -93,7 +99,7 @@ function startGame(){
                 canJump,
 
                 previousTime = performance.now(),
-                previousMobTime = performance.now(),
+                previousMobSpawnTime = performance.now(),
                 playerVector = new THREE.Vector3(),
 
                 blocker = document.getElementById('blocker'),
@@ -499,7 +505,7 @@ function startGame(){
 
             //bullet collides with player
             //check owner - player (camera) can't get hit by own bullet
-            if(dist(pos.x, pos.y, pos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) < mobRadius*2 && bullet.owner != controls){
+            if(dist(pos.x, pos.y, pos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) < playerRadius && bullet.owner != controls){
                 console.log("Player was hit by bullet");
                 $('#redflash').fadeIn(redFadeIn); //fade in the red screen
                 hp -= bulletDamage; //lose hp
@@ -507,7 +513,7 @@ function startGame(){
                 bullets.splice(i, 1); //remove 1 bullet from bullets array
                 scene.remove(bullet); //remove the bullet from scene
                 //update hud
-                document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
+                document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "<br/>Level: <span>" + level + "</span></p>";
                 $('#redflash').fadeOut(redFadeOut); //fade out redflash
                 continue; //if bullet has hit player, skip the rest of this iteration
                 //hit = true; //(will this be needed?)
@@ -527,7 +533,7 @@ function startGame(){
                     hit = true;
                     kills += 1;
                     //update hud
-                    document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
+                    document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "<br/>Level: <span>" + level + "</span></p>";;
                 }
             }
             
@@ -552,9 +558,9 @@ function startGame(){
         
         var mobTime = performance.now();
         //spawn mobs every 'mobSpawnInterval' seconds
-        if((mobTime - previousMobTime)/1000 >= mobSpawnInterval && mobs.length < 100 && animationRun && canShoot){
+        if((mobTime - previousMobSpawnTime)/1000 >= mobSpawnInterval && mobs.length < 100 && animationRun && canShoot){
             addMob();
-            previousMobTime = mobTime;
+            previousMobSpawnTime = mobTime;
         }
         
         var mobVelocity = mobMoveSpeed * delta;
@@ -565,7 +571,7 @@ function startGame(){
                 mobDir = mob.ray.direction; //the direction of the mob
             
             var mobShootTime = performance.now();
-            if((mobShootTime - mob.previousMobShootTime)/1000 >= 15 && animationRun && canShoot){
+            if((mobShootTime - mob.previousMobShootTime)/1000 >= mobShootInterval && animationRun && canShoot){
                 addBullet(mob);
                 mob.previousMobShootTime = mobShootTime;
             }
@@ -573,12 +579,14 @@ function startGame(){
             //mob player collision
             if(dist(mobPos.x, mobPos.y, mobPos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) <= mobRadius *2){
                 console.log("Player and mob collide - player takes " + mobDamage + " hp damage and mob is deleted.");
+                $('#redflash').fadeIn(redFadeIn); //fade in the red screen
                 hp -= mobDamage; //player takes damage
                 if (hp < 0){ hp = 0;} //set hp to 0 if below 0
                 mobs.splice(i, 1); //remove 1 mob from mobs array
                 scene.remove(mob); //remove the mob from scene
                 //update hud
                 document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
+                $('#redflash').fadeOut(redFadeOut); //fade out redflash
             }
 
             //mob hits wall - change direction
@@ -596,7 +604,8 @@ function startGame(){
             mob.translateY(mobVelocity * mobDir.y); //move along y axis
             mob.translateZ(mobVelocity * mobDir.z); //move along z axis
         }
-
+        
+        levelUpCheck();
         
         //repaint everything
         renderer.render(scene, camera);
@@ -776,6 +785,18 @@ function startGame(){
     $(window).blur(function(){
         if(controls){controls.freeze = true; location.reload();}
     });
+    
+    function levelUpCheck(){
+    if(kills % 10 == 0 && previousKills % 10 != 0 && mobSpawnInterval >= 1 && mobShootInterval >= 1){
+        mobSpawnInterval -= mobSpawnIntervalChange;
+        mobShootInterval -= mobShootIntervalChange;
+        level += 1;
+        console.log("Level up! To level: " + level + ". Mobspawninterval and mobShootInterval were changed to " + mobShootInterval + " and " + mobShootInterval);
+        //update hud
+        document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "<br/>Level: <span>" + level + "</span></p>";
+    }
+    previousKills = kills;
+    }
 }
 
-//document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
+//document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "<br/>Level: <span>" + level + "</span></p>";
