@@ -100,6 +100,9 @@ function startGame(){
                 startscreen = document.getElementById('startscreen'),
                 gameoverscreen = document.getElementById('gameoverscreen');
                 gameoverscreen.style.display = 'none';
+            var redflash = document.getElementById('redflash');
+                redflash.style.display = 'none';
+            var redFadeIn = 70, redFadeOut = 300;
                 
             var hud = document.getElementById('hud');
                 hud.style.display = 'none';
@@ -354,7 +357,6 @@ function startGame(){
             new THREE.BoxGeometry(units * unitSize, floorHeight, units * unitSize), 
             ceilingMaterial);
             ceiling.position.y = wallHeight * unitSize;
-            console.log("adding ceiling at y: " + ceiling.position.y);
         scene.add(ceiling);
         
         //basic wall structure
@@ -499,12 +501,14 @@ function startGame(){
             //check owner - player (camera) can't get hit by own bullet
             if(dist(pos.x, pos.y, pos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) < mobRadius*2 && bullet.owner != controls){
                 console.log("Player was hit by bullet");
+                $('#redflash').fadeIn(redFadeIn); //fade in the red screen
                 hp -= bulletDamage; //lose hp
                 if (hp < 0){ hp = 0;} //set hp to 0 if below 0
                 bullets.splice(i, 1); //remove 1 bullet from bullets array
                 scene.remove(bullet); //remove the bullet from scene
                 //update hud
                 document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
+                $('#redflash').fadeOut(redFadeOut); //fade out redflash
                 continue; //if bullet has hit player, skip the rest of this iteration
                 //hit = true; //(will this be needed?)
             }

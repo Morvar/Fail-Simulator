@@ -62,7 +62,8 @@ canvas {width 100%; height: 100%}
     -webkit-box-align: center;
     -moz-box-align: center;
     box-align: center;
-
+    
+    background-color: rgb(170,0,0);
     color: #ffffff;
     text-align: center;
 
@@ -75,4 +76,11 @@ canvas {width 100%; height: 100%}
     width: 100%;
 	height: 100%;
     background-color: rgba(0,0,0,0);
+}
+
+#redflash {
+    position: absolute;
+    width: 100%;
+	height: 100%;
+    background-color: rgba(170,0,0,0.5);
 }
