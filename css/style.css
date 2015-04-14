@@ -78,6 +78,10 @@ canvas {width 100%; height: 100%}
     background-color: rgba(0,0,0,0);
 }
 
+#hp {color: #BD191D}
+#kills {color: #006B24}
+#level {color: #2959C0}
+
 #redflash {
     position: absolute;
     width: 100%;

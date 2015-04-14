@@ -481,7 +481,7 @@ function startGame(){
 
             //bullet collides with wall
             if(checkWallCollision(pos)){ //if bullet collides with wall-
-                console.log("Wall collision for bullet position x: " + pos.x + " z: " + pos.z + "y: " + pos.y + " detected");
+                //console.log("Wall collision for bullet position x: " + pos.x + " z: " + pos.z + "y: " + pos.y + " detected");
                 bullets.splice(i, 1); //remove 1 bullet from bullets array
                 scene.remove(bullet); //remove the bullet from scene
                 continue; //if bullet has hit wall, skip the rest of this iteration
@@ -489,7 +489,7 @@ function startGame(){
             
             //bullet collides with ceiling/sky
             if(pos.y >= wallHeight * unitSize){ //if bullet has reached ceiling level-
-                console.log("Ceiling collision for bullet position x: " + pos.x + " z: " + pos.z + "y: " + pos.y + " detected");
+                //console.log("Ceiling collision for bullet position x: " + pos.x + " z: " + pos.z + "y: " + pos.y + " detected");
                 bullets.splice(i, 1); //remove 1 bullet from bullets array
                 scene.remove(bullet); //remove the bullet from scene
                 continue; //if bullet has hit ceiling, skip the rest of this iteration
@@ -497,7 +497,7 @@ function startGame(){
             
             //bullet collides with floor
             if(pos.y <= floorHeight/2){
-                console.log("Floor collision for bullet position x: " + pos.x + " z: " + pos.z + "y: " + pos.y + " detected");
+                //console.log("Floor collision for bullet position x: " + pos.x + " z: " + pos.z + "y: " + pos.y + " detected");
                 bullets.splice(i, 1); //remove 1 bullet from bullets array
                 scene.remove(bullet); //remove the bullet from scene
                 continue; //if bullet has hit floor, skip the rest of this iteration
@@ -513,7 +513,7 @@ function startGame(){
                 bullets.splice(i, 1); //remove 1 bullet from bullets array
                 scene.remove(bullet); //remove the bullet from scene
                 //update hud
-                document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "<br/>Level: <span>" + level + "</span></p>";
+                updateHUD();
                 $('#redflash').fadeOut(redFadeOut); //fade out redflash
                 continue; //if bullet has hit player, skip the rest of this iteration
                 //hit = true; //(will this be needed?)
@@ -533,7 +533,7 @@ function startGame(){
                     hit = true;
                     kills += 1;
                     //update hud
-                    document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "<br/>Level: <span>" + level + "</span></p>";;
+                    updateHUD();
                 }
             }
             
@@ -585,7 +585,7 @@ function startGame(){
                 mobs.splice(i, 1); //remove 1 mob from mobs array
                 scene.remove(mob); //remove the mob from scene
                 //update hud
-                document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "</span></p>";
+                updateHUD();
                 $('#redflash').fadeOut(redFadeOut); //fade out redflash
             }
 
@@ -679,7 +679,7 @@ function startGame(){
 
         newBullet.objType = "bullet"; //give the bullet a name tag
         newBullet.owner = object; //give the bullet an owner property (who fired it)
-        console.log("A " + newBullet.objType + " was fired from x: " + newBullet.position.x + ", y: " + newBullet.position.y + ", z: " + newBullet.position.z);
+        //console.log("A " + newBullet.objType + " was fired from x: " + newBullet.position.x + ", y: " + newBullet.position.y + ", z: " + newBullet.position.z);
         bullets.push(newBullet); //add the new bullet to bullets array
         scene.add(newBullet); //add the new bullet to scene
     }
@@ -793,10 +793,14 @@ function startGame(){
         level += 1;
         console.log("Level up! To level: " + level + ". Mobspawninterval and mobShootInterval were changed to " + mobShootInterval + " and " + mobShootInterval);
         //update hud
-        document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "<br/>Level: <span>" + level + "</span></p>";
+        updateHUD();
     }
     previousKills = kills;
     }
-}
 
-//document.getElementById("hud").innerHTML = "<p>HP: " + hp + "</span><br/>Kills: " + kills + "<br/>Level: <span>" + level + "</span></p>";
+    function updateHUD(){
+        
+        document.getElementById("hud").innerHTML = "<p>HP: <span id='hp'>" + hp + "</span><br/>Kills: <span id='kills'>" + kills + "</span><br/>Level: <span id='level'>" + level + "</span></p>";
+    }
+}
+//document.getElementById("hud").innerHTML = "<p>HP: <span id="hp">" + hp + "</span><br/>Kills: <span id="kills">" + kills + "<br/>Level: <span id="level">" + level + "</span></p>";
