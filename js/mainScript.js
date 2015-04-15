@@ -694,7 +694,7 @@ function startGame(){
             spawnPos = getRandomSpawn();
         
         //set the new mobs position
-        newMob.position.set(spawnPos.x, unitSize * 1.2, spawnPos.z);
+        newMob.position.set(spawnPos.x, spawnPos.y, spawnPos.z);
         
         //give mob a random movement vector
         var vector = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
@@ -813,35 +813,20 @@ function startGame(){
             mapSecZ = Math.floor(Math.random() * mapHeight);
         }
         while(map[mapSecX][mapSecZ] > 0 && map[mapSecX][mapSecZ] === map[playerSec.x][playerSec.z]);
-        console.log("MapSecX: " + mapSecX + "MapSecZ: " + mapSecZ);
         
         //var spawnX = mapSecX * unitSize - (unitSize * (-1 -mapWidth +1))/2;
         var spawnX = mapSecX * unitSize + Math.floor(Math.random() * unitSize) - unitSize/2 * mapWidth;
         //var spawnZ = mapSecZ * unitSize - (unitSize * (-1 -mapHeight +1))/2;
         var spawnZ = mapSecZ * unitSize + Math.floor(Math.random() * unitSize) - unitSize/2 * mapHeight;
+        var spawnY = Math.floor(Math.random() * (wallHeight * unitSize - floorHeight) + floorHeight);
         
-        return {x: spawnX, z: spawnZ};
+        console.log("mapSecX: " + mapSecX + " mapSecZ: " + mapSecZ);
         
-        //var x = (objPosition.x + unitSize/2) / unitSize + mapWidth/2 - 0.5;
-        //var z = (objPosition.z + unitSize/2) / unitSize + mapWidth/2 - 0.5;
+        return {x: spawnX, y: spawnY, z: spawnZ};
+        
     }
     
-/*
-    function getRandomSpawn(){
-        var indexX = undefined;
-        var indexZ = undefined;
-        while(map[indexX][indexZ] === undefined || map[indexX][indexZ] > 0){
-            indexX = Math.floor(Math.random() * mapWidth);
-            indexZ = Math.floor(Math.random() * mapLength);
-        }
-        var sectorCoordX = Math.floor(Math.random() * unitSize);
-        var sectorCoordY = Math.floor(Math.random() * unitSize);
-        
-        var mapCoords;
-        mapCoords.x = 
-        return 
-    }
-*/
+
 
 }
 //document.getElementById("hud").innerHTML = "<p>HP: <span id="hp">" + hp + "</span><br/>Kills: <span id="kills">" + kills + "<br/>Level: <span id="level">" + level + "</span></p>";
