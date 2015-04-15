@@ -67,19 +67,18 @@ function startGame(){
                    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], // 13
                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 14
                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 15
-                   ], 
-
+                   ],
                 
-            mapWidth = map[0].length, //X
-            mapHeight = map.length, //Z
+                mapWidth = map[0].length, //X
+                mapHeight = map.length, //Z
 
-            //Map colors:
-            floorColor = {color: 0xCEF123},
-            playerBulletColor = {color: 0x555555},
-            mobBulletColor = {color: 0x994444},
-            mobColor = {color: 0x55DD66},
-            wall1Color = {color: 0x438776},
-            fogColor = 0xFFAAFF//0x557788;//0x00AAFF,
+                //Map colors:
+                floorColor = {color: 0xCEF123},
+                playerBulletColor = {color: 0x555555},
+                mobBulletColor = {color: 0x994444},
+                mobColor = {color: 0x55DD66},
+                wall1Color = {color: 0x438776},
+                fogColor = 0xFFAAFF//0x557788;//0x00AAFF,
 
             var floorMaterial = new THREE.MeshPhongMaterial(floorColor),
                 wall1Material = new THREE.MeshPhongMaterial(wall1Color),
@@ -691,10 +690,11 @@ function startGame(){
     function addMob(){
 
         //create the new mob with the mesh and material
-        var newMob = new THREE.Mesh(mobGeometry, mobMaterial);
+        var newMob = new THREE.Mesh(mobGeometry, mobMaterial),
+            spawnPos = getRandomSpawn();
         
         //set the new mobs position
-        newMob.position.set(0, unitSize * 1.2, 0);
+        newMob.position.set(spawnPos.x, unitSize * 1.2, spawnPos.z);
         
         //give mob a random movement vector
         var vector = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
@@ -716,6 +716,7 @@ function startGame(){
     function checkWallCollision(objPosition){
         //get the map sector the object is in
         var objSec = retrieveMapSector(objPosition);
+        
         //return true if there is a wall there on map (>0) 
         // or bullet position is undefined, otherwise false
 
@@ -724,7 +725,7 @@ function startGame(){
         }
         
         if(map[objSec.x]===undefined){
-            console.log("The objSec.x treated in checkWallCollision is undefined. Bullet will be spliced");
+            console.log("The objSec.x treated in checkWallCollision is undefined.");
             return true;
         }
         
@@ -799,8 +800,48 @@ function startGame(){
     }
 
     function updateHUD(){
-        
         document.getElementById("hud").innerHTML = "<p>HP: <span id='hp'>" + hp + "</span><br/>Kills: <span id='kills'>" + kills + "</span><br/>Level: <span id='level'>" + level + "</span></p>";
     }
+    
+    function getRandomSpawn(){
+        
+        var mapSecX, mapSecZ,
+            playerSec = retrieveMapSector(controls.getObject().position);
+            console.log("playerSec: " + playerSec.x + " " + playerSec.z);
+        do{
+            mapSecX = Math.floor(Math.random() * mapWidth);
+            mapSecZ = Math.floor(Math.random() * mapHeight);
+        }
+        while(map[mapSecX][mapSecZ] > 0 && map[mapSecX][mapSecZ] === map[playerSec.x][playerSec.z]);
+        console.log("MapSecX: " + mapSecX + "MapSecZ: " + mapSecZ);
+        
+        //var spawnX = mapSecX * unitSize - (unitSize * (-1 -mapWidth +1))/2;
+        var spawnX = mapSecX * unitSize + Math.floor(Math.random() * unitSize) - unitSize/2 * mapWidth;
+        //var spawnZ = mapSecZ * unitSize - (unitSize * (-1 -mapHeight +1))/2;
+        var spawnZ = mapSecZ * unitSize + Math.floor(Math.random() * unitSize) - unitSize/2 * mapHeight;
+        
+        return {x: spawnX, z: spawnZ};
+        
+        //var x = (objPosition.x + unitSize/2) / unitSize + mapWidth/2 - 0.5;
+        //var z = (objPosition.z + unitSize/2) / unitSize + mapWidth/2 - 0.5;
+    }
+    
+/*
+    function getRandomSpawn(){
+        var indexX = undefined;
+        var indexZ = undefined;
+        while(map[indexX][indexZ] === undefined || map[indexX][indexZ] > 0){
+            indexX = Math.floor(Math.random() * mapWidth);
+            indexZ = Math.floor(Math.random() * mapLength);
+        }
+        var sectorCoordX = Math.floor(Math.random() * unitSize);
+        var sectorCoordY = Math.floor(Math.random() * unitSize);
+        
+        var mapCoords;
+        mapCoords.x = 
+        return 
+    }
+*/
+
 }
 //document.getElementById("hud").innerHTML = "<p>HP: <span id="hp">" + hp + "</span><br/>Kills: <span id="kills">" + kills + "<br/>Level: <span id="level">" + level + "</span></p>";
