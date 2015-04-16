@@ -13,8 +13,8 @@ function startGame(){
             bulletDamage = 10,
             mobDamage = 20,
             mobRadius = 5,
-            playerRadius = mobRadius * 1.5,
-            mobSpawnInterval = 5, //seconds
+            playerRadius = mobRadius * 2,
+            mobSpawnInterval = 3, //seconds
             mobSpawnIntervalChange = 0.15,
             mobShootInterval = 10,
             mobShootIntervalChange = 0.15,
