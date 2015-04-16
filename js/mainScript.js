@@ -13,7 +13,7 @@ function startGame(){
             previousKills = 0,
             bulletDamage = 10,
             mobDamage = 20,
-            mobRadius = 5,
+            mobRadius = 6,
             playerRadius = mobRadius * 2,
             mobSpawnInterval = 3, //seconds
             mobSpawnIntervalChange = 0.15,
@@ -23,7 +23,7 @@ function startGame(){
             playerMass = 100.0,
             bulletMass = 3.0,
             unitSize = 20, 
-            wallHeight = 5.0,
+            wallHeight = 7.0,
             cameraHeight = 0.25,
             floorHeight = 10.0,
             mouse = {x: 0, y: 0},
@@ -74,16 +74,31 @@ function startGame(){
                 mapHeight = map.length, //Z
 
                 //Map colors:
-                floorColor = {color: 0xCEF123},
+                
                 playerBulletColor = {color: 0x555555},
                 mobBulletColor = {color: 0x994444},
                 mobColor = {color: 0x55DD66},
+                
+                /*
+                floorColor = {color: 0xCEF123},
                 wall1Color = {color: 0x438776},
                 fogColor = 0xFFAAFF//0x557788;//0x00AAFF,
-
+                ceilingColor = {color: 0xff0000},
+                */
+                
+                floorColor = {color: 0x000033},
+                wall1Color = {color: 0x0000FF},
+                fogColor = 0x000000,
+                ceilingColor = {color: 0x000000},
+                
+                floorLightColor = 0x4C0066,
+                lightColor1 = 0x7070A3,
+                lightColor2 = 0x7070A3,
+                ambLightColor = 0x303044;
+                
             var floorMaterial = new THREE.MeshPhongMaterial(floorColor),
                 wall1Material = new THREE.MeshPhongMaterial(wall1Color),
-                ceilingMaterial = new THREE.MeshLambertMaterial(0xff0000),
+                ceilingMaterial = new THREE.MeshLambertMaterial(ceilingColor),
                 playerBulletMaterial = new THREE.MeshPhongMaterial(playerBulletColor);
                 playerBulletMaterial.shininess = 10;
                 mobBulletMaterial = new THREE.MeshPhongMaterial(mobBulletColor);
@@ -259,7 +274,7 @@ function startGame(){
         //scene setup - creating the world. the scene holds the other objects
         scene = new THREE.Scene();
         //add fog to the scene
-        scene.fog = new THREE.FogExp2(fogColor, 0.005); //(color hex, density)
+        scene.fog = new THREE.FogExp2(fogColor, 0.01); //(color hex, density)
 
         //create perspective camera(FOV field of view [degrees], 
         //aspect ratio[width/height of element],near, far [clipping plane. 
@@ -382,13 +397,13 @@ function startGame(){
         var units = mapWidth;
                 
         //add light to scene
-        var ambLight = new THREE.AmbientLight(0x303030);
+        var ambLight = new THREE.AmbientLight(ambLightColor);
         scene.add(ambLight);
 
         //DirectionalLight(hex, intensity)
-        var direcLight1 = new THREE.DirectionalLight(0xffffff, 1.5);//0.5);
-        var direcLight2 = new THREE.DirectionalLight(0xffffff, 1.5);//0.5);
-        var direcLight3 = new THREE.DirectionalLight(0xffffff, 1);//0.2);
+        var direcLight1 = new THREE.DirectionalLight(lightColor1, 1.5);//0.5);
+        var direcLight2 = new THREE.DirectionalLight(lightColor2, 1.5);//0.5);
+        var direcLight3 = new THREE.DirectionalLight(floorLightColor, 1);//0.2);
         //set position of light source
         direcLight1.position.set(mapWidth * unitSize/2, wallHeight * unitSize/2, mapHeight * unitSize/2);
         direcLight2.position.set(-mapWidth * unitSize/2, wallHeight * unitSize/2, -mapHeight * unitSize/2);
