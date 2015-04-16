@@ -9,6 +9,7 @@ function startGame(){
             hp = 100,
             kills = 0,
             level = 1,
+            levelUpInterval = 5,
             previousKills = 0,
             bulletDamage = 10,
             mobDamage = 20,
@@ -788,7 +789,7 @@ function startGame(){
     });
     
     function levelUpCheck(){
-    if(kills % 10 == 0 && previousKills % 10 != 0 && mobSpawnInterval >= 1 && mobShootInterval >= 1){
+    if(kills % levelUpInterval == 0 && previousKills % levelUpInterval != 0 && mobSpawnInterval >= 1 && mobShootInterval >= 1){
         mobSpawnInterval -= mobSpawnIntervalChange;
         mobShootInterval -= mobShootIntervalChange;
         level += 1;
