@@ -3,9 +3,9 @@ function startGame(){
     //Global variables
         var jumpSpeed = 230,
             playerMoveSpeed = 400.0,
-            playerBulletMoveSpeed = playerMoveSpeed * 0.5,
-            mobBulletMoveSpeed = playerMoveSpeed * 0.1,
-            mobMoveSpeed = playerMoveSpeed * 0.05,
+            playerBulletMoveSpeed = playerMoveSpeed * 0.75,
+            mobBulletMoveSpeed = playerMoveSpeed * 0.15,
+            mobMoveSpeed = playerMoveSpeed * 0.07,
             hp = 100,
             kills = 0,
             level = 1,
