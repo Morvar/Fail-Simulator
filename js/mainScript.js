@@ -33,7 +33,7 @@ function startGame(){
             animationRun = false, 
             canShoot = false, 
             scene, camera, controls, renderer, lastPlayerMove,
-
+    
             bullets = [],
             mapObjects = [],
             mobs = [],
@@ -109,10 +109,55 @@ function startGame(){
             var redflash = document.getElementById('redflash');
                 redflash.style.display = 'none';
             var redFadeIn = 70, redFadeOut = 300;
+            var levelup = document.getElementById('levelup');
+                levelup.style.display = 'none';
+            var levelupFadeIn = 70, levelupFadeOut = 1000;
                 
             var hud = document.getElementById('hud');
                 hud.style.display = 'none';
-        //_________________________________________________
+                
+//_________________________________________________               
+            //Music and sound
+
+            var musicColossus = new Howl({
+                urls: ['sounds/colossus.mp3'], volume: 0.1, loop:true
+                }),
+                
+                musicSandroll = new Howl({
+                urls: ['sounds/sandroll.mp3'], volume: 0.1, loop:true
+                }),
+                    
+                musicMetronic = new Howl({
+                urls: ['sounds/metronic.mp3'], volume: 0.1, loop:true
+                }),
+                    
+                soundPlayerShoot = new Howl({
+                urls: ['sounds/playerShoot.ogg'], volume: 0.2,
+                }),
+                    
+                soundMobDeath = new Howl({
+                urls: ['sounds/mobDeath.ogg'], volume: 0.2,
+                }),
+                    
+                soundPlayerHurt = new Howl({
+                urls: ['sounds/playerHurt.ogg'], volume: 0.2,
+                }),
+
+                soundGameOver = new Howl({
+                urls: ['sounds/gameOver.mp3'], volume: 0.3,
+                }),
+                    
+                soundLevelUp = new Howl({
+                urls: ['sounds/levelUp.mp3'], volume: 0.3,
+                });
+
+            var inGameMusic = 
+                musicMetronic,
+                //musicSandroll,
+                menuMusic = musicColossus;
+            
+
+//_________________________________________________
             
         //check if users browser supports pointerlock
         var pointerLockFound = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
@@ -162,11 +207,14 @@ function startGame(){
             
             //When user clicks on the startscreen, ask browser to enable pointerlock
             startscreen.addEventListener('click', function(event){
+                //fade out menu music
+                menuMusic.fadeOut(0, 2000);
+                                  
                 startscreen.style.display = 'none';
                 //show heads up display
                 hud.style.display = '';
                 
-                //Make sure shooting is enabled after 1 sec.
+                //Make sure shooting is enabled after 0.5 sec.
                 setTimeout(function(){canShoot = true; console.log("Shooting enabled.")}, 500);
 
                 //pointer locking request for users browser (firefox, chrome)
@@ -187,10 +235,12 @@ function startGame(){
                     bodyElement.requestFullscreen();
                 }
 
-            else{
-                bodyElement.requestPointerLock();
+                else{
+                    bodyElement.requestPointerLock();
+                }
+                
+                inGameMusic.play();
             }
-        }
         , false);}
 
         else{
@@ -200,6 +250,7 @@ function startGame(){
         init();
         animationRun = true;
         animate();
+        menuMusic.play();
 
     //___________________________________________________
 
@@ -320,6 +371,7 @@ function startGame(){
             //.which property indicates which key is pressed
             if (animationRun && canShoot && e.which === 1 || animationRun && canShoot && e.which === 16){
                 addBullet(controls);
+                soundPlayerShoot.play();
             }
         });
     }
@@ -507,6 +559,7 @@ function startGame(){
             //check owner - player (camera) can't get hit by own bullet
             if(dist(pos.x, pos.y, pos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) < playerRadius && bullet.owner != controls){
                 console.log("Player was hit by bullet");
+                soundPlayerHurt.play();
                 $('#redflash').fadeIn(redFadeIn); //fade in the red screen
                 hp -= bulletDamage; //lose hp
                 if (hp < 0){ hp = 0;} //set hp to 0 if below 0
@@ -528,6 +581,7 @@ function startGame(){
                     
                     bullets.splice(i, 1); //remove 1 bullet from bullets array
                     scene.remove(bullet); //remove the bullet from scene
+                    soundMobDeath.play();
                     mobs.splice(j, 1); //remove 1 mob from mobs array
                     scene.remove(mob); //remove the mob from scene
                     hit = true;
@@ -579,6 +633,7 @@ function startGame(){
             //mob player collision
             if(dist(mobPos.x, mobPos.y, mobPos.z, controls.getObject().position.x, controls.getObject().position.y, controls.getObject().position.z) <= mobRadius *2){
                 console.log("Player and mob collide - player takes " + mobDamage + " hp damage and mob is deleted.");
+                soundPlayerHurt.play();
                 $('#redflash').fadeIn(redFadeIn); //fade in the red screen
                 hp -= mobDamage; //player takes damage
                 if (hp < 0){ hp = 0;} //set hp to 0 if below 0
@@ -610,8 +665,11 @@ function startGame(){
         //repaint everything
         renderer.render(scene, camera);
 
-        //If player dies show game Over screen
+        //If player dies show game over screen
         if(hp <= 0){
+            //fade out music
+            inGameMusic.fadeOut(0, 1000);
+            setTimeout(function(){soundGameOver.play();}, 1000);
             animationRun = false;
             canShoot = false;
             $(renderer.domElement).fadeOut(); //fade out renderer
@@ -620,8 +678,8 @@ function startGame(){
             blocker.style.display = '-moz-box';
             blocker.style.display = 'box';
             startscreen.style.display = 'none';
-            //hud.style.display = 'none';
-            gameoverscreen.style.display = '';
+            setTimeout(function(){gameoverscreen.style.display = '';}, 1000);
+            
             
             //ask browser to disable pointerlock
             document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
@@ -779,23 +837,32 @@ function startGame(){
         mouse.y = - (e.clientY / height) * 2 + 1;
     }
 
-    //when browser window is in focus, do not freeze controls.
+    //when browser window is in focus, reload the page
     $(window).focus(function(){
-        if(controls){controls.freeze = false;} //freeze,enabled?
+        if(controls){location.reload();}
     });
     //when browser window is out of focus (blurred), no moving around.
     $(window).blur(function(){
-        if(controls){controls.freeze = true; location.reload();}
+        if(controls){
+            controls.freeze = true;
+            animationRun = false;
+            canShoot = false;
+            inGameMusic.stop();
+            menuMusic.stop();
+        }
     });
     
     function levelUpCheck(){
     if(kills % levelUpInterval == 0 && previousKills % levelUpInterval != 0 && mobSpawnInterval >= 1 && mobShootInterval >= 1){
+        $('#levelup').fadeIn(levelupFadeIn); //fade in level up screen
         mobSpawnInterval -= mobSpawnIntervalChange;
         mobShootInterval -= mobShootIntervalChange;
         level += 1;
         console.log("Level up! To level: " + level + ". Mobspawninterval and mobShootInterval were changed to " + mobShootInterval + " and " + mobShootInterval);
+        soundLevelUp.play();
         //update hud
         updateHUD();
+        $('#levelup').fadeOut(levelupFadeOut); //fade out level up screen
     }
     previousKills = kills;
     }
