@@ -167,8 +167,8 @@ function startGame(){
                 });
 
             var inGameMusic = 
-                musicMetronic,
-                //musicSandroll,
+                //musicMetronic,
+                musicSandroll,
                 menuMusic = musicColossus;
             
 
